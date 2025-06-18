@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Financiera Personal</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/ventanas.css">
+    
+    <!-- External Libraries CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    
+    <!-- Drawflow -->
+    <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">💰 Gestor Financiero Personal</h1>
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-window="ingresos">
+                    📈 Ingresos
+                </button>
+                <button class="nav-tab" data-window="gestion">
+                    🔗 Gestión
+                </button>
+                <button class="nav-tab" data-window="gastos">
+                    💸 Gastos
+                </button>
+                <button class="nav-tab" data-window="hoja-calculo">
+                    📊 Hoja de Cálculo
+                </button>
+            </div>
+            <div class="nav-actions">
+                <button id="exportar-datos" class="btn-secondary">
+                    💾 Exportar
+                </button>
+                <button id="importar-datos" class="btn-secondary">
+                    📤 Importar
+                </button>
+                <button id="configuracion" class="btn-secondary">
+                    ⚙️ Config
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- Ventana 1: Ingresos -->
+        <section id="ventana-ingresos" class="ventana active">
+            <div class="ventana-header">
+                <h2>📈 Gestión de Ingresos</h2>
+                <button id="agregar-ingreso" class="btn-primary">+ Nuevo Ingreso</button>
+            </div>
+            
+            <div class="content-grid">
+                <div class="calendar-section">
+                    <h3>Calendario de Ingresos</h3>
+                    <div id="calendar-ingresos"></div>
+                </div>
+                
+                <div class="ingresos-list">
+                    <h3>Lista de Ingresos</h3>
+                    <div class="filter-controls">
+                        <select id="filtro-tipo-ingreso">
+                            <option value="">Todos los tipos</option>
+                            <option value="nomina">Nómina</option>
+                            <option value="freelance">Freelance</option>
+                            <option value="venta">Venta</option>
+                            <option value="inversion">Inversión</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                        <select id="filtro-recurrencia">
+                            <option value="">Todas las frecuencias</option>
+                            <option value="diario">Diario</option>
+                            <option value="semanal">Semanal</option>
+                            <option value="quincenal">Quincenal</option>
+                            <option value="mensual">Mensual</option>
+                            <option value="unico">Único</option>
+                        </select>
+                    </div>
+                    <div id="lista-ingresos" class="items-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ventana 2: Gestión (Diagrama de Flujo) -->        <section id="ventana-gestion" class="ventana">
+            <div class="ventana-header">
+                <h2>🔗 Gestión y Priorización</h2>
+                <div class="gestion-controls">
+                    <button id="btn-agregar-ingresos" class="btn-secondary">📈 Agregar Ingresos</button>
+                    <button id="btn-agregar-gastos" class="btn-secondary">💸 Agregar Gastos</button>
+                    <button id="btn-algoritmo" class="btn-secondary">🎯 Agregar Algoritmo</button>
+                    <button id="btn-ejecutar-algoritmo" class="btn-primary">▶️ Ejecutar Priorización</button>
+                    <button id="btn-limpiar-diagrama" class="btn-warning">🗑️ Limpiar</button>
+                    <button id="btn-guardar-diagrama" class="btn-success">💾 Guardar</button>
+                    <button id="btn-cargar-diagrama" class="btn-info">� Cargar</button>
+                    <button id="btn-exportar-diagrama" class="btn-secondary">📤 Exportar</button>
+                </div>
+            </div>
+            
+            <div class="diagrama-main">
+                <div class="diagrama-sidebar">
+                    <div class="herramientas-diagrama">
+                        <h4>Herramientas</h4>
+                        <div class="tool-group">
+                            <label>
+                                <input type="checkbox" id="toggle-edicion"> Modo Edición
+                            </label>
+                        </div>
+                        <div class="tool-group">
+                            <button id="btn-zoom-in" class="btn-tool">🔍+</button>
+                            <button id="btn-zoom-out" class="btn-tool">🔍-</button>
+                            <button id="btn-zoom-reset" class="btn-tool">🔍⌂</button>
+                        </div>
+                    </div>
+                    
+                    <div id="panel-propiedades" class="propiedades-panel" style="display: none;">
+                        <!-- Propiedades del elemento seleccionado -->
+                    </div>
+                </div>
+                
+                <div class="diagrama-contenido">
+                    <div id="drawflow-container" class="drawflow-container"></div>
+                </div>
+            </div>
+            
+            <div id="resumen-algoritmo" class="resultados-priorizacion" style="display: none;">
+                <!-- El contenido se generará dinámicamente -->
+            </div>
+        </section>        <!-- Ventana 3: Gastos -->
+        <section id="ventana-gastos" class="ventana">
+            <div class="ventana-header">
+                <h2>💸 Gestión de Gastos</h2>
+                <div class="gastos-controls">
+                    <button id="agregar-gasto" class="btn-primary">+ Nuevo Gasto</button>
+                    <select id="filtro-gastos" class="form-control">
+                        <option value="todos">Todos los gastos</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="pagado">Pagados</option>
+                        <option value="vencido">Vencidos</option>
+                        <option value="alta">Prioridad Alta</option>
+                        <option value="media">Prioridad Media</option>
+                        <option value="baja">Prioridad Baja</option>
+                    </select>
+                    <input type="text" id="busqueda-gastos" placeholder="Buscar gastos..." class="form-control">
+                    <select id="orden-gastos" class="form-control">
+                        <option value="vencimiento">Por vencimiento</option>
+                        <option value="prioridad">Por prioridad</option>
+                        <option value="monto">Por monto</option>
+                        <option value="nombre">Por nombre</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="gastos-navegacion">
+                <div class="vista-controls">
+                    <button class="vista-gastos-btn active" data-vista="burbujas">🫧 Burbujas</button>
+                    <button class="vista-gastos-btn" data-vista="calendario">📅 Calendario</button>
+                    <button class="vista-gastos-btn" data-vista="lista">📋 Lista</button>
+                </div>
+                
+                <div class="gastos-contadores">
+                    <div class="contador-item">
+                        <span id="contador-gastos-total">0</span>
+                        <label>Total</label>
+                    </div>
+                    <div class="contador-item">
+                        <span id="contador-gastos-pendientes">0</span>
+                        <label>Pendientes</label>
+                    </div>
+                    <div class="contador-item">
+                        <span id="contador-gastos-pagados">0</span>
+                        <label>Pagados</label>
+                    </div>
+                    <div class="contador-item">
+                        <span id="contador-gastos-vencidos">0</span>
+                        <label>Vencidos</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vista de burbujas -->
+            <div id="vista-gastos-burbujas" class="vista-gastos">
+                <div id="gastos-burbujas" class="burbujas-container"></div>
+            </div>
+            
+            <!-- Vista de calendario -->
+            <div id="vista-gastos-calendario" class="vista-gastos" style="display: none;">
+                <div id="calendario-gastos" class="calendario-container"></div>
+            </div>
+            
+            <!-- Vista de lista -->
+            <div id="vista-gastos-lista" class="vista-gastos" style="display: none;">
+                <div id="lista-gastos" class="lista-container"></div>
+            </div>
+        </section>        <!-- Ventana 4: Hoja de Cálculo -->
+        <section id="ventana-hoja-calculo" class="ventana">
+            <div class="ventana-header">
+                <h2>📊 Hoja de Cálculo y Proyecciones</h2>
+                <div class="calculo-controls">
+                    <button id="btn-generar-proyeccion" class="btn-primary">🔄 Generar Proyección</button>
+                    <button id="btn-exportar-hoja" class="btn-secondary">📄 Exportar</button>
+                    <button id="btn-guardar-proyeccion" class="btn-success">💾 Guardar</button>
+                    <select id="periodo-proyeccion" class="form-control">
+                        <option value="3">3 Meses</option>
+                        <option value="6">6 Meses</option>
+                        <option value="12" selected>12 Meses</option>
+                        <option value="24">24 Meses</option>
+                    </select>
+                    <input type="date" id="fecha-inicio-proyeccion" class="form-control">
+                    <select id="filtro-datos" class="form-control">
+                        <option value="todos">Todos los datos</option>
+                        <option value="ingresos">Solo ingresos</option>
+                        <option value="gastos">Solo gastos</option>
+                        <option value="recurrentes">Solo recurrentes</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="hoja-calculo-navegacion">
+                <div class="tabs-hoja-calculo">
+                    <button class="tab-hoja-calculo active" data-vista="tabla">📋 Tabla</button>
+                    <button class="tab-hoja-calculo" data-vista="graficos">📊 Gráficos</button>
+                    <button class="tab-hoja-calculo" data-vista="resumen">📈 Resumen</button>
+                    <button class="tab-hoja-calculo" data-vista="comparacion">⚖️ Comparación</button>
+                </div>
+            </div>
+            
+            <!-- Vista de tabla -->
+            <div id="vista-tabla" class="vista-hoja-calculo">
+                <div id="tabla-proyecciones" class="tabla-container">
+                    <!-- Tabla se genera dinámicamente -->
+                </div>
+            </div>
+            
+            <!-- Vista de gráficos -->
+            <div id="vista-graficos" class="vista-hoja-calculo" style="display: none;">
+                <div class="graficos-controls">
+                    <select id="tipo-grafico" class="form-control">
+                        <option value="linea">Línea</option>
+                        <option value="barras">Barras</option>
+                        <option value="area">Área</option>
+                        <option value="circular">Circular</option>
+                    </select>
+                </div>
+                
+                <div class="graficos-grid">
+                    <div class="grafico-item">
+                        <h4>Evolución del Balance</h4>
+                        <canvas id="grafico-balance"></canvas>
+                    </div>
+                    <div class="grafico-item">
+                        <h4>Ingresos vs Gastos</h4>
+                        <canvas id="grafico-ingresos-gastos"></canvas>
+                    </div>
+                    <div class="grafico-item">
+                        <h4>Análisis de Tendencia</h4>
+                        <canvas id="grafico-tendencia"></canvas>
+                    </div>
+                    <div class="grafico-item">
+                        <h4>Distribución por Prioridad</h4>
+                        <canvas id="grafico-prioridad"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vista de resumen -->
+            <div id="vista-resumen" class="vista-hoja-calculo" style="display: none;">
+                <div id="resumen-proyeccion" class="resumen-container">
+                    <!-- Resumen se genera dinámicamente -->
+                </div>
+            </div>
+            
+            <!-- Vista de comparación -->
+            <div id="vista-comparacion" class="vista-hoja-calculo" style="display: none;">
+                <div id="comparacion-proyecciones" class="comparacion-container">
+                    <!-- Comparación se genera dinámicamente -->
+                </div>
+            </div>
+        </section>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="graficos-section">
+                    <h3>Visualizaciones</h3>
+                    <div class="graficos-grid">
+                        <div class="grafico-container">
+                            <canvas id="grafico-balance"></canvas>
+                        </div>
+                        <div class="grafico-container">
+                            <canvas id="grafico-distribucion"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metricas-rapidas">
+                <div class="metrica">
+                    <span class="metrica-label">Total Ingresos</span>
+                    <span id="total-ingresos" class="metrica-valor">$0</span>
+                </div>
+                <div class="metrica">
+                    <span class="metrica-label">Total Gastos</span>
+                    <span id="total-gastos" class="metrica-valor">$0</span>
+                </div>
+                <div class="metrica">
+                    <span class="metrica-label">Balance Actual</span>
+                    <span id="balance-actual" class="metrica-valor">$0</span>
+                </div>
+                <div class="metrica">
+                    <span class="metrica-label">Ahorro Proyectado</span>
+                    <span id="ahorro-proyectado" class="metrica-valor">$0</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modales -->
+    
+    <!-- Modal para agregar/editar ingreso -->
+    <div id="modal-ingreso" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-ingreso-titulo">Nuevo Ingreso</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="form-ingreso">
+                <div class="form-group">
+                    <label for="ingreso-tipo">Tipo de Ingreso:</label>
+                    <select id="ingreso-tipo" required>
+                        <option value="nomina">Nómina</option>
+                        <option value="freelance">Freelance</option>
+                        <option value="venta">Venta</option>
+                        <option value="inversion">Inversión</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-descripcion">Descripción:</label>
+                    <input type="text" id="ingreso-descripcion" required>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-monto">Monto:</label>
+                    <input type="number" id="ingreso-monto" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-fecha">Fecha:</label>
+                    <input type="date" id="ingreso-fecha" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="ingreso-recurrente">
+                        ¿Es recurrente?
+                    </label>
+                </div>
+                <div id="recurrencia-options" class="form-group" style="display: none;">
+                    <label for="ingreso-frecuencia">Frecuencia:</label>
+                    <select id="ingreso-frecuencia">
+                        <option value="diario">Diario</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="quincenal">Quincenal</option>
+                        <option value="mensual">Mensual</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary modal-close">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar gasto -->
+    <div id="modal-gasto" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-gasto-titulo">Nuevo Gasto</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="form-gasto">
+                <div class="form-group">
+                    <label for="gasto-tipo">Tipo de Gasto:</label>
+                    <select id="gasto-tipo" required>
+                        <option value="hipoteca">Hipoteca</option>
+                        <option value="alquiler">Alquiler</option>
+                        <option value="servicios">Servicios</option>
+                        <option value="alimentacion">Alimentación</option>
+                        <option value="transporte">Transporte</option>
+                        <option value="salud">Salud</option>
+                        <option value="educacion">Educación</option>
+                        <option value="entretenimiento">Entretenimiento</option>
+                        <option value="deuda">Deuda</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-descripcion">Descripción:</label>
+                    <input type="text" id="gasto-descripcion" required>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-monto">Monto:</label>
+                    <input type="number" id="gasto-monto" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-fecha">Fecha de Vencimiento:</label>
+                    <input type="date" id="gasto-fecha" required>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-prioridad">Prioridad:</label>
+                    <select id="gasto-prioridad" required>
+                        <option value="alta">Alta (Obligatorio)</option>
+                        <option value="media">Media (Importante)</option>
+                        <option value="baja">Baja (Opcional)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="gasto-recurrente">
+                        ¿Es recurrente?
+                    </label>
+                </div>
+                <div id="gasto-recurrencia-options" class="form-group" style="display: none;">
+                    <label for="gasto-frecuencia">Frecuencia:</label>
+                    <select id="gasto-frecuencia">
+                        <option value="semanal">Semanal</option>
+                        <option value="quincenal">Quincenal</option>
+                        <option value="mensual">Mensual</option>
+                        <option value="anual">Anual</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary modal-close">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/storage/localStorage.js"></script>
+    <script src="js/storage/indexedDB.js"></script>
+    <script src="js/models/Ingreso.js"></script>
+    <script src="js/models/Gasto.js"></script>
+    <script src="js/algoritmos/priorizacion.js"></script>
+    <script src="js/ui/navegacion.js"></script>
+    <script src="js/ui/modales.js"></script>
+    <script src="js/ventanas/ingresos.js"></script>
+    <script src="js/ventanas/gastos.js"></script>
+    <script src="js/ventanas/gestion.js"></script>
+    <script src="js/ventanas/hojaCalculo.js"></script>
+    <script src="js/utils/exportar.js"></script>
+    <script src="js/utils/notificaciones.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,1287 @@
+/* Estilos específicos para las ventanas del sistema */
+
+/* === VENTANA DE INGRESOS === */
+#calendar-ingresos,
+#calendar-gastos {
+    height: 400px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.fc-event {
+    border-radius: 0.25rem;
+    border: none;
+    font-size: 0.75rem;
+    padding: 0.125rem 0.25rem;
+}
+
+.fc-event.ingreso {
+    background: var(--success-color);
+    color: white;
+}
+
+.fc-event.gasto {
+    background: var(--danger-color);
+    color: white;
+}
+
+.fc-event.gasto-alta {
+    background: var(--danger-color);
+}
+
+.fc-event.gasto-media {
+    background: var(--warning-color);
+}
+
+.fc-event.gasto-baja {
+    background: var(--success-color);
+}
+
+/* === VENTANA DE GESTIÓN (DRAWFLOW) === */
+.diagrama-container {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.diagrama-toolbar {
+    background: var(--background-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.toolbar-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toolbar-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.toolbar-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.drawflow-container {
+    height: 500px;
+    background: #f9fafb;
+    position: relative;
+}
+
+/* Nodos del drawflow */
+.drawflow .drawflow-node {
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    min-width: 150px;
+    text-align: center;
+}
+
+.drawflow .drawflow-node.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.drawflow .drawflow-node.node-ingreso {
+    border-color: var(--success-color);
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+}
+
+.drawflow .drawflow-node.node-gasto {
+    border-color: var(--danger-color);
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+}
+
+.drawflow .drawflow-node.node-prioridad {
+    border-color: var(--warning-color);
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+}
+
+.node-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.node-amount {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.node-date {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.node-priority {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+}
+
+.node-priority.alta {
+    background: var(--danger-color);
+    color: white;
+}
+
+.node-priority.media {
+    background: var(--warning-color);
+    color: white;
+}
+
+.node-priority.baja {
+    background: var(--success-color);
+    color: white;
+}
+
+/* Conexiones del drawflow */
+.drawflow svg {
+    z-index: 2;
+}
+
+.drawflow .connection .main-path {
+    stroke: var(--primary-color);
+    stroke-width: 3px;
+    fill: none;
+}
+
+.drawflow .connection.selected .main-path {
+    stroke: var(--warning-color);
+    stroke-width: 4px;
+}
+
+/* Resultados de priorización */
+.resultados-priorizacion {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+
+#resultados-container {
+    margin-top: 1rem;
+}
+
+.resultado-item {
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resultado-item.pagado {
+    border-color: var(--success-color);
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+}
+
+.resultado-item.pendiente {
+    border-color: var(--danger-color);
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+}
+
+.resultado-item.parcial {
+    border-color: var(--warning-color);
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+}
+
+.resultado-info {
+    flex: 1;
+}
+
+.resultado-estado {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.resultado-estado.pagado {
+    background: var(--success-color);
+    color: white;
+}
+
+.resultado-estado.pendiente {
+    background: var(--danger-color);
+    color: white;
+}
+
+.resultado-estado.parcial {
+    background: var(--warning-color);
+    color: white;
+}
+
+/* === VENTANA DE GASTOS === */
+.gastos-prioritarios .gastos-burbujas {
+    border-color: var(--danger-color);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.gastos-normales .gastos-burbujas {
+    border-color: var(--warning-color);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.gastos-opcionales .gastos-burbujas {
+    border-color: var(--success-color);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.gasto-vencido {
+    animation: pulsar 2s infinite;
+}
+
+@keyframes pulsar {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* === VENTANA DE HOJA DE CÁLCULO === */
+.gestion-controls,
+.calculo-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.gestion-controls select,
+.calculo-controls select {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--surface-color);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+/* Tabla de proyecciones mejorada */
+#tabla-proyecciones {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+#tabla-proyecciones th {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    text-align: center;
+}
+
+#tabla-proyecciones td {
+    text-align: center;
+    font-weight: 500;
+}
+
+#tabla-proyecciones .balance-positivo {
+    color: var(--success-color);
+    font-weight: 700;
+}
+
+#tabla-proyecciones .balance-negativo {
+    color: var(--danger-color);
+    font-weight: 700;
+}
+
+/* Controles del período */
+.periodo-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.periodo-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+}
+
+.periodo-btn:hover {
+    background: var(--background-color);
+}
+
+.periodo-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* === MODALES === */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from { transform: translateY(-50px) scale(0.95); }
+    to { transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: var(--background-color);
+    color: var(--text-primary);
+}
+
+/* Formularios */
+form {
+    padding: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--surface-color);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Estados de validación */
+.form-group.error input,
+.form-group.error select,
+.form-group.error textarea {
+    border-color: var(--danger-color);
+}
+
+.form-group.success input,
+.form-group.success select,
+.form-group.success textarea {
+    border-color: var(--success-color);
+}
+
+.error-message {
+    color: var(--danger-color);
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* Alertas y notificaciones */
+.alert {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert.success {
+    background: #ecfdf5;
+    border-color: var(--success-color);
+    color: #065f46;
+}
+
+.alert.warning {
+    background: #fffbeb;
+    border-color: var(--warning-color);
+    color: #92400e;
+}
+
+.alert.error {
+    background: #fef2f2;
+    border-color: var(--danger-color);
+    color: #991b1b;
+}
+
+.alert.info {
+    background: #eff6ff;
+    border-color: var(--primary-color);
+    color: #1e40af;
+}
+
+/* Spinner de carga */
+.spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--border-color);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s ease-in-out infinite;
+}
+
+/* Estados vacíos */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.empty-state-description {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Efectos de hover y transiciones */
+.hover-lift {
+    transition: transform 0.2s ease-out;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Modo oscuro (preparado para futuras implementaciones) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #0f172a;
+        --surface-color: #1e293b;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
+    }
+}
+
+/* === ESTILOS PARA VENTANA DE GASTOS === */
+.gastos-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.gastos-navegacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+}
+
+.vista-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.vista-gastos-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.vista-gastos-btn:hover {
+    background: var(--primary-light);
+}
+
+.vista-gastos-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.gastos-contadores {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.contador-item {
+    text-align: center;
+}
+
+.contador-item span {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.contador-item label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Vista de burbujas */
+.burbujas-container {
+    min-height: 500px;
+    position: relative;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.burbuja-gasto {
+    position: absolute;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    opacity: 0;
+    transform: scale(0);
+}
+
+.burbuja-gasto:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.burbuja-gasto.prioridad-alta {
+    border: 3px solid #dc3545;
+}
+
+.burbuja-gasto.prioridad-media {
+    border: 3px solid #ffc107;
+}
+
+.burbuja-gasto.prioridad-baja {
+    border: 3px solid #28a745;
+}
+
+.burbuja-gasto.urgencia-critica {
+    animation: pulse-danger 2s infinite;
+}
+
+.burbuja-gasto.urgencia-alta {
+    animation: pulse-warning 3s infinite;
+}
+
+@keyframes pulse-danger {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
+@keyframes pulse-warning {
+    0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+}
+
+.burbuja-contenido {
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.burbuja-nombre {
+    font-weight: bold;
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.burbuja-monto {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.burbuja-vencimiento {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.burbuja-acciones {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    display: none;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.burbuja-gasto:hover .burbuja-acciones {
+    display: flex;
+}
+
+.burbuja-acciones button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-editar {
+    background: var(--info-color);
+    color: white;
+}
+
+.btn-pagar {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-eliminar {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Vista de lista */
+.lista-container {
+    background: white;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.tabla-gastos {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-gastos th,
+.tabla-gastos td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tabla-gastos th {
+    background: var(--surface-color);
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.fila-gasto:hover {
+    background: var(--surface-color);
+}
+
+.fila-gasto.urgencia-critica {
+    background: rgba(220, 53, 69, 0.1);
+}
+
+.fila-gasto.urgencia-alta {
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    text-align: center;
+}
+
+.badge.prioridad-alta,
+.badge.estado-vencido {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.badge.prioridad-media,
+.badge.estado-pendiente {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.badge.prioridad-baja,
+.badge.estado-pagado {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+/* === ESTILOS PARA VENTANA DE GESTIÓN === */
+.diagrama-main {
+    display: flex;
+    gap: 1rem;
+    min-height: 600px;
+}
+
+.diagrama-sidebar {
+    width: 250px;
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+.herramientas-diagrama h4 {
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+}
+
+.tool-group {
+    margin-bottom: 1rem;
+}
+
+.tool-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.btn-tool {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+.btn-tool:hover {
+    background: var(--primary-light);
+}
+
+.diagrama-contenido {
+    flex: 1;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    position: relative;
+    overflow: hidden;
+}
+
+.drawflow-container {
+    width: 100%;
+    height: 100%;
+    min-height: 600px;
+}
+
+.propiedades-panel {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.propiedad {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.propiedad label {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.propiedad span {
+    color: var(--text-muted);
+}
+
+.propiedad pre {
+    background: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    max-width: 200px;
+    overflow: auto;
+}
+
+/* Estilos para tarjetas de estadísticas */
+.stat-card {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.stat-card.ingreso {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: #28a745;
+}
+
+.stat-card.gasto {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+}
+
+.stat-card.cubierto {
+    background: rgba(23, 162, 184, 0.1);
+    border-color: #17a2b8;
+}
+
+.stat-card.positivo {
+    background: rgba(40, 167, 69, 0.1);
+    border-color: #28a745;
+}
+
+.stat-card.negativo {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.prioridad-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.prioridad-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+}
+
+/* === ESTILOS PARA VENTANA DE HOJA DE CÁLCULO === */
+.hoja-calculo-navegacion {
+    margin-bottom: 1.5rem;
+}
+
+.tabs-hoja-calculo {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab-hoja-calculo {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: transparent;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-hoja-calculo:hover {
+    background: var(--surface-color);
+}
+
+.tab-hoja-calculo.active {
+    border-bottom-color: var(--primary-color);
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.vista-hoja-calculo {
+    min-height: 500px;
+}
+
+.graficos-controls {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.graficos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.grafico-item {
+    background: white;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.grafico-item h4 {
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+}
+
+.grafico-item canvas {
+    max-height: 300px;
+}
+
+/* Estilos para resumen */
+.resumen-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.resumen-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.resumen-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.resumen-item:last-child {
+    border-bottom: none;
+}
+
+.resumen-item .label {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.resumen-item .valor {
+    font-weight: bold;
+}
+
+.resumen-item .valor.ingreso {
+    color: #28a745;
+}
+
+.resumen-item .valor.gasto {
+    color: #dc3545;
+}
+
+.resumen-item .valor.positivo {
+    color: #28a745;
+}
+
+.resumen-item .valor.negativo {
+    color: #dc3545;
+}
+
+.resumen-item.balance-final {
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.resumen-item.balance-final .valor {
+    font-size: 1.2rem;
+}
+
+/* Estilos para análisis de tendencia */
+.tendencia-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.tendencia-info {
+    margin-bottom: 1rem;
+}
+
+.tendencia-direccion {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.tendencia-direccion.positiva {
+    color: #28a745;
+}
+
+.tendencia-direccion.negativa {
+    color: #dc3545;
+}
+
+.tendencia-confianza {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.mejores-peores {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.mejor-mes {
+    color: #28a745;
+}
+
+.peor-mes {
+    color: #dc3545;
+}
+
+/* Estilos para evaluación de riesgo */
+.riesgo-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.riesgo-nivel {
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.riesgo-nivel.nivel-bajo {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid #28a745;
+}
+
+.riesgo-nivel.nivel-medio {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid #ffc107;
+}
+
+.riesgo-nivel.nivel-alto {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.recomendaciones h6 {
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.recomendaciones ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.recomendaciones li {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    border-left: 3px solid var(--primary-color);
+}
+
+/* Estilos para comparación */
+.comparacion-container {
+    background: white;
+    border-radius: var(--border-radius);
+}
+
+.table-bordered {
+    border: 1px solid var(--border-color);
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid var(--border-color);
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.riesgo-bajo {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.riesgo-medio {
+    color: #ffc107;
+    font-weight: bold;
+}
+
+.riesgo-alto {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.positiva {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.negativa {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+    .gastos-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .gastos-navegacion {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .diagrama-main {
+        flex-direction: column;
+    }
+    
+    .diagrama-sidebar {
+        width: 100%;
+    }
+    
+    .graficos-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .resumen-item {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+        gap: 0.5rem;
+    }
+}
