@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pruebas del Sistema - Gestor Financiero Personal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .results-container {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .console-output {
+            background: #1e1e1e;
+            color: #ffffff;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 1rem;
+        }
+        
+        .status {
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f1b0b7;
+        }
+        
+        .progress {
+            background: #e9ecef;
+            border-radius: 6px;
+            height: 20px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 6px;
+        }
+        
+        .progress-bar.success {
+            background: #28a745;
+        }
+        
+        .progress-bar.warning {
+            background: #ffc107;
+        }
+        
+        .progress-bar.danger {
+            background: #dc3545;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧪 Sistema de Pruebas</h1>
+        <p>Gestor Financiero Personal</p>
+    </div>
+    
+    <div class="controls">
+        <button class="btn btn-primary" onclick="ejecutarTodasLasPruebas()">
+            🚀 Ejecutar Todas las Pruebas
+        </button>
+        <button class="btn btn-secondary" onclick="ejecutarPruebasEspecificas(['almacenamiento'])">
+            🏪 Solo Almacenamiento
+        </button>
+        <button class="btn btn-secondary" onclick="ejecutarPruebasEspecificas(['modelos'])">
+            📦 Solo Modelos
+        </button>
+        <button class="btn btn-secondary" onclick="ejecutarPruebasEspecificas(['algoritmo'])">
+            🧮 Solo Algoritmo
+        </button>
+        <button class="btn btn-success" onclick="limpiarConsola()">
+            🗑️ Limpiar
+        </button>
+    </div>
+    
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Ejecutando pruebas...</p>
+    </div>
+    
+    <div class="results-container">
+        <h2>📊 Resultados de las Pruebas</h2>
+        
+        <div id="status" class="status" style="display: none;">
+            <!-- Estado se actualiza dinámicamente -->
+        </div>
+        
+        <div id="progress-container" style="display: none;">
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="progress-text">0% completado</div>
+        </div>
+        
+        <div id="stats" class="stats-grid" style="display: none;">
+            <!-- Estadísticas se generan dinámicamente -->
+        </div>
+        
+        <div id="console" class="console-output">
+            Haz clic en "Ejecutar Todas las Pruebas" para comenzar...
+        </div>
+    </div>
+    
+    <!-- Cargar utilidades de prueba -->
+    <script src="test-utils.js"></script>    <script src="test-storage-nuevo.js"></script>
+    <script src="test-models-nuevo.js"></script>
+    <script src="test-algorithm-nuevo.js"></script>
+    <script src="run-tests.js"></script>
+    
+    <script>
+        // Configurar redirección de console.log a la interfaz
+        const consoleElement = document.getElementById('console');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function logToInterface(message, type = 'log') {
+            // También mostrar en consola real
+            if (type === 'error') {
+                originalError(message);
+            } else if (type === 'warn') {
+                originalWarn(message);
+            } else {
+                originalLog(message);
+            }
+            
+            // Agregar a la interfaz
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'error' ? 'color: #ff6b6b' : 
+                              type === 'warn' ? 'color: #ffd93d' : 
+                              'color: #6bcf7f';
+            
+            consoleElement.innerHTML += `<span style="${colorClass}">[${timestamp}] ${message}</span>\n`;
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        }
+        
+        console.log = (message) => logToInterface(message, 'log');
+        console.error = (message) => logToInterface(message, 'error');
+        console.warn = (message) => logToInterface(message, 'warn');
+        
+        function mostrarCargando(mostrar) {
+            document.getElementById('loading').style.display = mostrar ? 'block' : 'none';
+        }
+        
+        function actualizarEstado(resultado) {
+            const statusElement = document.getElementById('status');
+            const porcentaje = resultado.resumen.porcentajeGeneral;
+            
+            statusElement.style.display = 'block';
+            
+            if (porcentaje === 100) {
+                statusElement.className = 'status success';
+                statusElement.innerHTML = '✅ Todas las pruebas pasaron correctamente';
+            } else if (porcentaje >= 80) {
+                statusElement.className = 'status warning';
+                statusElement.innerHTML = `⚠️ ${porcentaje.toFixed(1)}% de las pruebas pasaron`;
+            } else {
+                statusElement.className = 'status error';
+                statusElement.innerHTML = `❌ Solo ${porcentaje.toFixed(1)}% de las pruebas pasaron`;
+            }
+        }
+        
+        function actualizarProgreso(porcentaje) {
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            
+            progressContainer.style.display = 'block';
+            progressBar.style.width = porcentaje + '%';
+            progressText.textContent = `${porcentaje.toFixed(1)}% completado`;
+            
+            if (porcentaje === 100) {
+                progressBar.className = 'progress-bar success';
+            } else if (porcentaje >= 80) {
+                progressBar.className = 'progress-bar warning';
+            } else {
+                progressBar.className = 'progress-bar danger';
+            }
+        }
+        
+        function actualizarEstadisticas(resultado) {
+            const statsElement = document.getElementById('stats');
+            const { resultados, resumen } = resultado;
+            
+            statsElement.style.display = 'grid';
+            statsElement.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${resumen.totalExitosas}</div>
+                    <div class="stat-label">Pruebas Exitosas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${resumen.totalPruebas}</div>
+                    <div class="stat-label">Total de Pruebas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${resumen.porcentajeGeneral.toFixed(1)}%</div>
+                    <div class="stat-label">Porcentaje de Éxito</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${resumen.estado}</div>
+                    <div class="stat-label">Estado General</div>
+                </div>            `;
+        }
+          // Función auxiliar para evitar recursión
+        function ejecutarPruebasDirectamente() {
+            console.log('\n🚀 === EJECUTANDO TODAS LAS PRUEBAS ===');
+            console.log('Fecha de ejecución:', new Date().toLocaleString());
+            console.log('='.repeat(50));
+            
+            const resultados = {};
+            let totalPruebas = 0;
+            let totalExitosas = 0;
+            
+            try {
+                // Ejecutar pruebas de almacenamiento
+                console.log('\n1️⃣ Ejecutando pruebas de almacenamiento...');
+                if (typeof window.ejecutarPruebasAlmacenamiento === 'function') {
+                    resultados.almacenamiento = window.ejecutarPruebasAlmacenamiento();
+                    totalPruebas += resultados.almacenamiento.total;
+                    totalExitosas += resultados.almacenamiento.exitosos;
+                } else {
+                    console.error('❌ Función ejecutarPruebasAlmacenamiento no disponible');
+                    resultados.almacenamiento = { exitosos: 0, total: 0, porcentaje: 0 };
+                }
+                
+            } catch (error) {
+                console.error('❌ Error en pruebas de almacenamiento:', error);
+                resultados.almacenamiento = { exitosos: 0, total: 0, porcentaje: 0, error: error.message };
+            }
+            
+            try {
+                // Ejecutar pruebas de modelos
+                console.log('\n2️⃣ Ejecutando pruebas de modelos...');
+                if (typeof window.ejecutarPruebasModelos === 'function') {
+                    resultados.modelos = window.ejecutarPruebasModelos();
+                    totalPruebas += resultados.modelos.total;
+                    totalExitosas += resultados.modelos.exitosos;
+                } else {
+                    console.error('❌ Función ejecutarPruebasModelos no disponible');
+                    resultados.modelos = { exitosos: 0, total: 0, porcentaje: 0 };
+                }
+                
+            } catch (error) {
+                console.error('❌ Error en pruebas de modelos:', error);
+                resultados.modelos = { exitosos: 0, total: 0, porcentaje: 0, error: error.message };
+            }
+            
+            try {
+                // Ejecutar pruebas de algoritmo
+                console.log('\n3️⃣ Ejecutando pruebas de algoritmo...');
+                if (typeof window.ejecutarPruebasAlgoritmo === 'function') {
+                    resultados.algoritmo = window.ejecutarPruebasAlgoritmo();
+                    totalPruebas += resultados.algoritmo.total;
+                    totalExitosas += resultados.algoritmo.exitosos;
+                } else {
+                    console.error('❌ Función ejecutarPruebasAlgoritmo no disponible');
+                    resultados.algoritmo = { exitosos: 0, total: 0, porcentaje: 0 };
+                }
+                
+            } catch (error) {
+                console.error('❌ Error en pruebas de algoritmo:', error);
+                resultados.algoritmo = { exitosos: 0, total: 0, porcentaje: 0, error: error.message };
+            }
+            
+            // Mostrar resumen final
+            const porcentajeGeneral = totalPruebas > 0 ? (totalExitosas / totalPruebas) * 100 : 0;
+            
+            console.log('\n' + '='.repeat(50));
+            console.log('📋 === RESUMEN FINAL DE PRUEBAS ===');
+            console.log('='.repeat(50));
+            
+            Object.entries(resultados).forEach(([categoria, resultado]) => {
+                const icono = resultado.porcentaje === 100 ? '✅' : 
+                             resultado.porcentaje >= 80 ? '⚠️' : '❌';
+                
+                console.log(`${icono} ${categoria.toUpperCase()}:`);
+                console.log(`   Exitosas: ${resultado.exitosos}/${resultado.total}`);
+                console.log(`   Porcentaje: ${resultado.porcentaje.toFixed(1)}%`);
+                
+                if (resultado.error) {
+                    console.log(`   Error: ${resultado.error}`);
+                }
+                console.log('');
+            });
+            
+            console.log(`🎯 RESULTADO GENERAL: ${totalExitosas}/${totalPruebas} (${porcentajeGeneral.toFixed(1)}%)`);
+            
+            if (porcentajeGeneral === 100) {
+                console.log('🎉 ¡Todas las pruebas pasaron exitosamente!');
+            } else if (porcentajeGeneral >= 80) {
+                console.log('⚠️ Mayoría de pruebas exitosas, revisar fallos menores');
+            } else {
+                console.log('❌ Múltiples fallos detectados, revisar el sistema');
+            }
+            
+            return {
+                resultados,
+                resumen: {
+                    totalExitosas,
+                    totalPruebas,
+                    porcentajeGeneral,
+                    estado: totalExitosas === totalPruebas ? 'ÉXITO' : 'FALLO'
+                }
+            };
+        }
+        
+        async function ejecutarTodasLasPruebas() {
+            mostrarCargando(true);
+            limpiarConsola();
+            
+            try {
+                console.log('🚀 Iniciando ejecución de todas las pruebas...');                
+                // Ejecutar las pruebas directamente sin recursión
+                const resultado = ejecutarPruebasDirectamente();
+                
+                actualizarEstado(resultado);
+                actualizarProgreso(resultado.resumen.porcentajeGeneral);
+                actualizarEstadisticas(resultado);
+                
+                console.log('\n✨ Ejecución de pruebas completada');
+                
+            } catch (error) {
+                console.error('Error ejecutando pruebas:', error);
+            } finally {
+                mostrarCargando(false);
+            }
+        }
+        
+        async function ejecutarPruebasEspecificas(categorias) {
+            mostrarCargando(true);
+            limpiarConsola();
+            
+            try {
+                console.log(`🎯 Ejecutando pruebas específicas: ${categorias.join(', ')}`);
+                
+                const resultado = window.ejecutarPruebasEspecificas(categorias);
+                
+                // Calcular totales para las categorías seleccionadas
+                let totalExitosas = 0;
+                let totalPruebas = 0;
+                
+                Object.values(resultado).forEach(res => {
+                    totalExitosas += res.exitosos;
+                    totalPruebas += res.total;
+                });
+                
+                const porcentaje = totalPruebas > 0 ? (totalExitosas / totalPruebas) * 100 : 0;
+                
+                actualizarProgreso(porcentaje);
+                
+                console.log(`\n✨ Pruebas específicas completadas: ${totalExitosas}/${totalPruebas} (${porcentaje.toFixed(1)}%)`);
+                
+            } catch (error) {
+                console.error('Error ejecutando pruebas específicas:', error);
+            } finally {
+                mostrarCargando(false);
+            }
+        }
+        
+        function limpiarConsola() {
+            consoleElement.innerHTML = '';
+            document.getElementById('status').style.display = 'none';
+            document.getElementById('progress-container').style.display = 'none';
+            document.getElementById('stats').style.display = 'none';
+        }
+        
+        // Mensaje de bienvenida
+        console.log('🧪 Sistema de pruebas cargado correctamente');
+        console.log('Haz clic en los botones para ejecutar las pruebas');
+    </script>
+</body>
+</html>

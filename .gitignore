@@ -1,14 +1,14 @@
 # Sistema de Gestión Financiera Personal - .gitignore
 
-# Archivos de pruebas problemáticos (mantener test-simple.html)
-test-runner.html
-CHECKLIST_VERIFICACION.md
+# Archivos de pruebas antiguos eliminados
+# Los archivos actuales son: test-*-nuevo.js, test-simple.html, test-utils.js
 
 # Scripts de ejecución de pruebas
 ejecutar_pruebas.py
 ejecutar_pruebas.bat
+verificar_modelos.py
 
-# Archivos de verificación del sistema
+# Archivos de verificación del sistema  
 js/utils/verificacion.js
 
 # Archivos temporales
