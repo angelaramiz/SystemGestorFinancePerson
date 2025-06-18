@@ -1,0 +1,94 @@
+# Sistema de Gestión Financiera Personal - .gitignore
+
+# Archivos de pruebas problemáticos (mantener test-simple.html)
+test-runner.html
+CHECKLIST_VERIFICACION.md
+
+# Scripts de ejecución de pruebas
+ejecutar_pruebas.py
+ejecutar_pruebas.bat
+
+# Archivos de verificación del sistema
+js/utils/verificacion.js
+
+# Archivos temporales
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Archivos del sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archivos de IDE/Editor
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+.atom/
+.brackets.json
+
+# Node.js (si se usa en el futuro)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Python (para scripts de utilidad)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Archivos de datos de usuario (opcional)
+# Descomenta si quieres excluir datos de prueba
+# data/
+# backups/
+# exports/
+
+# Archivos de configuración local
+config.local.js
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos de cache del navegador
+.cache/
+
+# Archivos de distribución/build (si se implementa)
+dist/
+build/
+out/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Archivos de documentación generada automáticamente
+docs/generated/
+
+# Archivos específicos del proyecto que no deben versionarse
+user-data.json
+personal-config.js
+local-settings.js
