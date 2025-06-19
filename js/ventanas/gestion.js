@@ -701,9 +701,9 @@ class VentanaGestion {
 }
 
 // Funciones globales para eventos desde el diagrama
-window.ejecutarAlgoritmoDesdeNodo = function() {
-    const event = new CustomEvent('ejecutar-algoritmo-nodo');
+window.ejecutarAlgoritmoDesdeNodo = function() {    const event = new CustomEvent('ejecutar-algoritmo-nodo');
     document.dispatchEvent(event);
 };
 
-export default VentanaGestion;
+// Hacer disponible globalmente
+window.VentanaGestion = VentanaGestion;

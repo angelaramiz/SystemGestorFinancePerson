@@ -577,4 +577,5 @@ window.marcarComoPagado = function(gastoId) {
     document.dispatchEvent(event);
 };
 
-export default VentanaGastos;
+// Hacer disponible globalmente
+window.VentanaGastos = VentanaGastos;

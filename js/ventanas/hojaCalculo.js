@@ -981,9 +981,9 @@ window.exportarTablaCSV = function() {
     // TODO: Implementar exportación de tabla a CSV
 };
 
-window.generarNuevaProyeccion = function() {
-    const event = new CustomEvent('generar-proyeccion');
+window.generarNuevaProyeccion = function() {    const event = new CustomEvent('generar-proyeccion');
     document.dispatchEvent(event);
 };
 
-export default VentanaHojaCalculo;
+// Hacer disponible globalmente
+window.VentanaHojaCalculo = VentanaHojaCalculo;

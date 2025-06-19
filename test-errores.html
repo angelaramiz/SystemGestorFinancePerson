@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Errores - Sistema Financiero</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #0056b3; }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .console {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 Verificación de Errores Corregidos</h1>
+        <p>Prueba rápida de sintaxis y dependencias</p>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 Pruebas de Corrección</h3>
+        <button class="btn" onclick="probarDependencias()">🌐 Probar CDN</button>
+        <button class="btn" onclick="probarClases()">📦 Probar Clases</button>
+        <button class="btn" onclick="probarModelos()">🔍 Probar Modelos</button>
+        <button class="btn" onclick="limpiarLog()">🧹 Limpiar</button>
+        <div class="console" id="log"></div>
+    </div>
+    
+    <!-- Dependencias externas -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    
+    <!-- Scripts del sistema -->
+    <script src="js/models/Ingreso.js"></script>
+    <script src="js/models/Gasto.js"></script>
+    
+    <script>
+        const logElement = document.getElementById('log');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#00ff00';
+            logElement.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function limpiarLog() {
+            logElement.innerHTML = '';
+        }
+        
+        function probarDependencias() {
+            log('🌐 === PROBANDO DEPENDENCIAS CDN ===', 'info');
+            
+            // Probar Chart.js
+            if (typeof Chart !== 'undefined') {
+                log('✅ Chart.js cargado correctamente', 'success');
+            } else {
+                log('❌ Chart.js NO está disponible', 'error');
+            }
+            
+            // Probar FullCalendar
+            if (typeof FullCalendar !== 'undefined') {
+                log('✅ FullCalendar cargado correctamente', 'success');
+            } else {
+                log('❌ FullCalendar NO está disponible', 'error');
+            }
+            
+            log('📊 Prueba de dependencias completada\n', 'info');
+        }
+        
+        function probarClases() {
+            log('📦 === PROBANDO CLASES DEL SISTEMA ===', 'info');
+            
+            // Probar clase Ingreso
+            if (typeof Ingreso !== 'undefined') {
+                log('✅ Clase Ingreso disponible', 'success');
+                try {
+                    const testIngreso = new Ingreso({
+                        descripcion: 'Prueba',
+                        monto: 1000,
+                        fecha: '2025-06-19'
+                    });
+                    log('✅ Ingreso puede ser instanciado', 'success');
+                } catch (error) {
+                    log(`❌ Error instanciando Ingreso: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ Clase Ingreso NO disponible', 'error');
+            }
+            
+            // Probar clase Gasto
+            if (typeof Gasto !== 'undefined') {
+                log('✅ Clase Gasto disponible', 'success');
+                try {
+                    const testGasto = new Gasto({
+                        descripcion: 'Prueba',
+                        monto: 500,
+                        fechaVencimiento: '2025-06-25'
+                    });
+                    log('✅ Gasto puede ser instanciado', 'success');
+                } catch (error) {
+                    log(`❌ Error instanciando Gasto: ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ Clase Gasto NO disponible', 'error');
+            }
+            
+            log('📦 Prueba de clases completada\n', 'info');
+        }
+        
+        function probarModelos() {
+            log('🔍 === PROBANDO VALIDACIONES DE MODELOS ===', 'info');
+            
+            try {
+                // Probar validación de Ingreso
+                const ingresoValido = new Ingreso({
+                    descripcion: 'Salario Junio',
+                    monto: 3000,
+                    fecha: '2025-06-30',
+                    tipo: 'nomina'
+                });
+                log('✅ Ingreso válido creado correctamente', 'success');
+                
+                // Probar validación de Gasto
+                const gastoValido = new Gasto({
+                    descripcion: 'Renta Julio',
+                    monto: 1200,
+                    fechaVencimiento: '2025-07-01',
+                    prioridad: 'alta'
+                });
+                log('✅ Gasto válido creado correctamente', 'success');
+                
+                // Probar validación con datos inválidos
+                try {
+                    const ingresoInvalido = new Ingreso({
+                        descripcion: '',
+                        monto: 0
+                    });
+                    log('❌ Validación falló: debería haber rechazado datos inválidos', 'error');
+                } catch (error) {
+                    log('✅ Validación funciona: rechazó datos inválidos correctamente', 'success');
+                }
+                
+            } catch (error) {
+                log(`❌ Error en prueba de modelos: ${error.message}`, 'error');
+            }
+            
+            log('🔍 Prueba de modelos completada\n', 'info');
+        }
+        
+        // Capturar errores de JavaScript
+        window.addEventListener('error', function(e) {
+            log(`❌ ERROR JS: ${e.message} en ${e.filename}:${e.lineno}`, 'error');
+        });
+        
+        // Ejecutar prueba inicial al cargar
+        window.addEventListener('load', function() {
+            log('🚀 Sistema de verificación de errores iniciado', 'info');
+            log('Haz clic en los botones para ejecutar las pruebas\n', 'info');
+        });
+    </script>
+</body>
+</html>
