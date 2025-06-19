@@ -421,6 +421,9 @@ class NotificacionesManager {
 // Crear instancia global
 window.notificacionesManager = new NotificacionesManager();
 
+// Hacer disponible globalmente la clase también
+window.NotificacionesManager = NotificacionesManager;
+
 // Configurar al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ Manager de notificaciones inicializado');

@@ -260,7 +260,7 @@ class VentanaGestion {
         const contenido = `
             <div class="nodo-contenido">
                 <div class="nodo-titulo">${ingreso.fuente}</div>
-                <div class="nodo-monto">$${ingreso.monto.toLocaleString()}</div>
+                <div class="nodo-monto">${window.formatearMoneda ? window.formatearMoneda(ingreso.monto) : `$${ingreso.monto.toLocaleString()}`}</div>
                 <div class="nodo-info">${ingreso.recurrente ? 'Recurrente' : 'Único'}</div>
                 <div class="nodo-info">${new Date(ingreso.fecha).toLocaleDateString()}</div>
                 <div class="nodo-estado estado-${ingreso.estado || 'activo'}">${ingreso.estado || 'Activo'}</div>
@@ -283,7 +283,7 @@ class VentanaGestion {
         const contenido = `
             <div class="nodo-contenido">
                 <div class="nodo-titulo">${gasto.nombre}</div>
-                <div class="nodo-monto">$${gasto.monto.toLocaleString()}</div>
+                <div class="nodo-monto">${window.formatearMoneda ? window.formatearMoneda(gasto.monto) : `$${gasto.monto.toLocaleString()}`}</div>
                 <div class="nodo-info">Prioridad: ${gasto.prioridad}</div>
                 <div class="nodo-info">${this.formatearFechaVencimiento(diasVencimiento)}</div>
                 <div class="nodo-estado estado-${gasto.estado}">${this.obtenerTextoEstado(gasto.estado)}</div>
@@ -383,7 +383,7 @@ class VentanaGestion {
                     // Actualizar información de cobertura
                     const infoElement = nodoElement.querySelector('.nodo-info');
                     if (infoElement) {
-                        infoElement.innerHTML += `<br><small>Cubierto: $${gastoInfo.montoCubierto.toLocaleString()}</small>`;
+                        infoElement.innerHTML += `<br><small>Cubierto: ${window.formatearMoneda ? window.formatearMoneda(gastoInfo.montoCubierto) : `$${gastoInfo.montoCubierto.toLocaleString()}`}</small>`;
                     }
                 }
             }
@@ -432,25 +432,25 @@ class VentanaGestion {
                     <div class="row">
                         <div class="col-md-3">
                             <div class="stat-card ingreso">
-                                <div class="stat-value">$${totalIngresos.toLocaleString()}</div>
+                                <div class="stat-value">${window.formatearMoneda ? window.formatearMoneda(totalIngresos) : `$${totalIngresos.toLocaleString()}`}</div>
                                 <div class="stat-label">Total Ingresos</div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="stat-card gasto">
-                                <div class="stat-value">$${totalGastos.toLocaleString()}</div>
+                                <div class="stat-value">${window.formatearMoneda ? window.formatearMoneda(totalGastos) : `$${totalGastos.toLocaleString()}`}</div>
                                 <div class="stat-label">Total Gastos</div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="stat-card cubierto">
-                                <div class="stat-value">$${totalCubierto.toLocaleString()}</div>
+                                <div class="stat-value">${window.formatearMoneda ? window.formatearMoneda(totalCubierto) : `$${totalCubierto.toLocaleString()}`}</div>
                                 <div class="stat-label">Gastos Cubiertos</div>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="stat-card ${balance >= 0 ? 'positivo' : 'negativo'}">
-                                <div class="stat-value">$${balance.toLocaleString()}</div>
+                                <div class="stat-value">${window.formatearMoneda ? window.formatearMoneda(balance) : `$${balance.toLocaleString()}`}</div>
                                 <div class="stat-label">Balance</div>
                             </div>
                         </div>
@@ -463,7 +463,7 @@ class VentanaGestion {
                                 <div class="prioridad-item">
                                     <span class="badge prioridad-${stat.prioridad}">${stat.prioridad}</span>
                                     <span>${stat.cantidad} gastos</span>
-                                    <span>$${stat.total.toLocaleString()}</span>
+                                    <span>${window.formatearMoneda ? window.formatearMoneda(stat.total) : `$${stat.total.toLocaleString()}`}</span>
                                 </div>
                             `).join('')}
                         </div>

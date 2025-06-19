@@ -8,14 +8,14 @@
     <!-- Styles -->
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/ventanas.css">    <!-- External Libraries CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.css">
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- FullCalendar -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.5/main.min.js"></script>
     
     <!-- Drawflow -->
     <script src="https://cdn.jsdelivr.net/npm/drawflow@0.0.60/dist/drawflow.min.js"></script>
@@ -449,6 +449,205 @@
         </div>
     </div>
 
+    <!-- Modal de Configuración -->
+    <div id="modal-configuracion" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>⚙️ Configuración del Sistema</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="config-tabs">
+                    <button class="config-tab active" data-tab="general">🌐 General</button>
+                    <button class="config-tab" data-tab="moneda">💰 Moneda</button>
+                    <button class="config-tab" data-tab="notificaciones">🔔 Notificaciones</button>
+                    <button class="config-tab" data-tab="interfaz">🎨 Interfaz</button>
+                    <button class="config-tab" data-tab="datos">📊 Datos</button>
+                </div>
+
+                <!-- Pestaña General -->
+                <div id="config-general" class="config-panel active">
+                    <h3>🌐 Configuración General</h3>
+                    <div class="form-group">
+                        <label for="config-idioma">Idioma del Sistema</label>
+                        <select id="config-idioma">
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                            <option value="pt">Português</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-formato-fecha">Formato de Fecha</label>
+                        <select id="config-formato-fecha">
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-zona-horaria">Zona Horaria</label>
+                        <select id="config-zona-horaria">
+                            <option value="America/Mexico_City">Ciudad de México (GMT-6)</option>
+                            <option value="America/New_York">Nueva York (GMT-5)</option>
+                            <option value="Europe/Madrid">Madrid (GMT+1)</option>
+                            <option value="America/Sao_Paulo">São Paulo (GMT-3)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pestaña Moneda -->
+                <div id="config-moneda" class="config-panel">
+                    <h3>💰 Configuración de Moneda</h3>
+                    <div class="form-group">
+                        <label for="config-moneda-principal">Moneda Principal</label>
+                        <select id="config-moneda-principal">
+                            <option value="MXN">🇲🇽 Peso Mexicano (MXN)</option>
+                            <option value="USD">🇺🇸 Dólar Estadounidense (USD)</option>
+                            <option value="EUR">🇪🇺 Euro (EUR)</option>
+                            <option value="GBP">🇬🇧 Libra Esterlina (GBP)</option>
+                            <option value="JPY">🇯🇵 Yen Japonés (JPY)</option>
+                            <option value="CAD">🇨🇦 Dólar Canadiense (CAD)</option>
+                            <option value="AUD">🇦🇺 Dólar Australiano (AUD)</option>
+                            <option value="BRL">🇧🇷 Real Brasileño (BRL)</option>
+                            <option value="ARS">🇦🇷 Peso Argentino (ARS)</option>
+                            <option value="COP">🇨🇴 Peso Colombiano (COP)</option>
+                            <option value="CLP">🇨🇱 Peso Chileno (CLP)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-simbolo-moneda">Símbolo</label>
+                        <input type="text" id="config-simbolo-moneda" placeholder="$" maxlength="3">
+                    </div>
+                    <div class="form-group">
+                        <label for="config-decimales">Decimales</label>
+                        <select id="config-decimales">
+                            <option value="0">Sin decimales (1000)</option>
+                            <option value="2">2 decimales (1000.00)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-separador-miles">Separador de Miles</label>
+                        <select id="config-separador-miles">
+                            <option value=",">,</option>
+                            <option value=".">.  </option>
+                            <option value=" ">espacio</option>
+                            <option value="">ninguno</option>
+                        </select>
+                    </div>
+                    <div class="preview-moneda">
+                        <h4>Vista Previa:</h4>
+                        <div id="preview-monto">$1,234.56</div>
+                    </div>
+                </div>
+
+                <!-- Pestaña Notificaciones -->
+                <div id="config-notificaciones" class="config-panel">
+                    <h3>🔔 Configuración de Notificaciones</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="config-notif-habilitadas" checked>
+                            Habilitar notificaciones
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-notif-anticipacion">Días de anticipación para vencimientos</label>
+                        <select id="config-notif-anticipacion">
+                            <option value="1">1 día</option>
+                            <option value="3" selected>3 días</option>
+                            <option value="5">5 días</option>
+                            <option value="7">1 semana</option>
+                            <option value="15">15 días</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="config-notif-sonido" checked>
+                            Reproducir sonido
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="config-notif-browser" checked>
+                            Notificaciones del navegador
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pestaña Interfaz -->
+                <div id="config-interfaz" class="config-panel">
+                    <h3>🎨 Configuración de Interfaz</h3>
+                    <div class="form-group">
+                        <label for="config-tema">Tema</label>
+                        <select id="config-tema">
+                            <option value="claro">🌞 Claro</option>
+                            <option value="oscuro">🌙 Oscuro</option>
+                            <option value="auto">🔄 Automático</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-color-primario">Color Primario</label>
+                        <div class="color-options">
+                            <input type="radio" name="color-primario" value="#2563eb" id="color-azul" checked>
+                            <label for="color-azul" class="color-option" style="background: #2563eb"></label>
+                            <input type="radio" name="color-primario" value="#059669" id="color-verde">
+                            <label for="color-verde" class="color-option" style="background: #059669"></label>
+                            <input type="radio" name="color-primario" value="#dc2626" id="color-rojo">
+                            <label for="color-rojo" class="color-option" style="background: #dc2626"></label>
+                            <input type="radio" name="color-primario" value="#7c3aed" id="color-morado">
+                            <label for="color-morado" class="color-option" style="background: #7c3aed"></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-animaciones">Animaciones</label>
+                        <select id="config-animaciones">
+                            <option value="todas">Todas las animaciones</option>
+                            <option value="reducidas">Animaciones reducidas</option>
+                            <option value="ninguna">Sin animaciones</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Pestaña Datos -->
+                <div id="config-datos" class="config-panel">
+                    <h3>📊 Configuración de Datos</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="config-autosave" checked>
+                            Autoguardado automático
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-autosave-intervalo">Intervalo de autoguardado</label>
+                        <select id="config-autosave-intervalo">
+                            <option value="1">1 minuto</option>
+                            <option value="5" selected>5 minutos</option>
+                            <option value="10">10 minutos</option>
+                            <option value="30">30 minutos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="config-backup">Respaldo automático</label>
+                        <select id="config-backup">
+                            <option value="diario">Diario</option>
+                            <option value="semanal" selected>Semanal</option>
+                            <option value="mensual">Mensual</option>
+                            <option value="manual">Solo manual</option>
+                        </select>
+                    </div>
+                    <div class="data-actions">
+                        <button class="btn-secondary" id="btn-limpiar-cache">🗑️ Limpiar Cache</button>
+                        <button class="btn-secondary" id="btn-reset-config">🔄 Restaurar Configuración</button>
+                        <button class="btn-danger" id="btn-borrar-datos">⚠️ Borrar Todos los Datos</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary modal-close">Cancelar</button>
+                <button class="btn-primary" id="guardar-configuracion">💾 Guardar Configuración</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="js/storage/localStorage.js"></script>
     <script src="js/storage/indexedDB.js"></script>
@@ -463,6 +662,7 @@
     <script src="js/ventanas/hojaCalculo.js"></script>    <script src="js/utils/exportar.js"></script>
     <script src="js/utils/notificaciones.js"></script>
     <script src="js/utils/verificacion.js"></script>
+    <script src="js/utils/configuracion.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

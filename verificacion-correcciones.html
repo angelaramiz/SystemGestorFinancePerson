@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Correcciones - IndexedDB</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover { background: #218838; }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .console {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 Verificación de Correcciones IndexedDB</h1>
+        <p>Verificar método obtenerTodos y notificaciones</p>
+    </div>
+    
+    <div class="test-section">
+        <h3>🧪 Pruebas de Corrección</h3>
+        <button class="btn" onclick="probarIndexedDB()">🗄️ Probar IndexedDB</button>
+        <button class="btn" onclick="probarNotificaciones()">🔔 Probar Notificaciones</button>
+        <button class="btn" onclick="probarClasesGlobales()">🌐 Probar Clases Globales</button>
+        <button class="btn" onclick="limpiarLog()">🧹 Limpiar</button>
+        <div class="console" id="log"></div>
+    </div>
+    
+    <!-- Scripts del sistema -->
+    <script src="js/storage/indexedDB.js"></script>
+    <script src="js/utils/notificaciones.js"></script>
+    <script src="js/ventanas/ingresos.js"></script>
+    
+    <script>
+        const logElement = document.getElementById('log');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#00ff00';
+            logElement.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span>\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function limpiarLog() {
+            logElement.innerHTML = '';
+        }
+        
+        async function probarIndexedDB() {
+            log('🗄️ === PROBANDO INDEXEDDB CORREGIDO ===', 'info');
+            
+            try {
+                // Crear instancia de IndexedDB
+                const indexedDB = new IndexedDBManager();
+                log('✅ IndexedDBManager instanciado', 'success');
+                
+                // Verificar que el método obtenerTodos existe
+                if (typeof indexedDB.obtenerTodos === 'function') {
+                    log('✅ Método obtenerTodos disponible', 'success');
+                } else {
+                    log('❌ Método obtenerTodos NO disponible', 'error');
+                }
+                
+                // Intentar inicializar
+                try {
+                    await indexedDB.init();
+                    log('✅ IndexedDB inicializado correctamente', 'success');
+                    
+                    // Probar obtenerTodos
+                    const gastos = await indexedDB.obtenerTodos('gastos');
+                    log(`✅ obtenerTodos('gastos') funciona: ${gastos.length} elementos`, 'success');
+                    
+                } catch (initError) {
+                    log(`⚠️ Error al inicializar IndexedDB: ${initError.message}`, 'warning');
+                }
+                
+            } catch (error) {
+                log(`❌ Error general: ${error.message}`, 'error');
+            }
+            
+            log('🗄️ Prueba de IndexedDB completada\n', 'info');
+        }
+        
+        function probarNotificaciones() {
+            log('🔔 === PROBANDO NOTIFICACIONES CORREGIDAS ===', 'info');
+            
+            // Verificar clase NotificacionesManager
+            if (typeof NotificacionesManager !== 'undefined') {
+                log('✅ Clase NotificacionesManager disponible', 'success');
+            } else {
+                log('❌ Clase NotificacionesManager NO disponible', 'error');
+            }
+            
+            // Verificar instancia global
+            if (typeof window.notificacionesManager !== 'undefined') {
+                log('✅ window.notificacionesManager disponible', 'success');
+                
+                // Probar mostrar notificación
+                try {
+                    window.notificacionesManager.mostrar('Prueba de notificación', 'info');
+                    log('✅ Método mostrar() funciona', 'success');
+                } catch (error) {
+                    log(`❌ Error en mostrar(): ${error.message}`, 'error');
+                }
+            } else {
+                log('❌ window.notificacionesManager NO disponible', 'error');
+            }
+            
+            log('🔔 Prueba de notificaciones completada\n', 'info');
+        }
+        
+        function probarClasesGlobales() {
+            log('🌐 === PROBANDO CLASES GLOBALES ===', 'info');
+            
+            const clases = [
+                'VentanaIngresos',
+                'VentanaGastos', 
+                'VentanaGestion',
+                'VentanaHojaCalculo',
+                'IndexedDBManager',
+                'NotificacionesManager'
+            ];
+            
+            clases.forEach(clase => {
+                if (typeof window[clase] !== 'undefined') {
+                    log(`✅ window.${clase} disponible`, 'success');
+                } else {
+                    log(`❌ window.${clase} NO disponible`, 'error');
+                }
+            });
+            
+            log('🌐 Prueba de clases globales completada\n', 'info');
+        }
+        
+        // Capturar errores de JavaScript
+        window.addEventListener('error', function(e) {
+            log(`❌ ERROR JS: ${e.message} en ${e.filename}:${e.lineno}`, 'error');
+        });
+        
+        // Ejecutar verificación inicial
+        window.addEventListener('load', function() {
+            log('🚀 Sistema de verificación de correcciones iniciado', 'info');
+            log('Ejecuta las pruebas para verificar las correcciones\n', 'info');
+        });
+    </script>
+</body>
+</html>

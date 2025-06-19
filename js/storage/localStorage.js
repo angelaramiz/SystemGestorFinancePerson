@@ -305,6 +305,15 @@ class LocalStorageManager {
         console.log('Sincronización:', this.getSincronizacion());
         console.groupEnd();
     }
+
+    // Métodos alias para compatibilidad
+    obtener(key) {
+        return this.get(key);
+    }
+
+    guardar(key, value) {
+        return this.set(key, value);
+    }
 }
 
 // Crear instancia global

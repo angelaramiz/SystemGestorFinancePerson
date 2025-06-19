@@ -146,14 +146,13 @@ class SistemaGestorFinanciero {
     }    /**
      * Inicializar componentes principales
      */
-    async inicializarComponentes() {
-        try {
+    async inicializarComponentes() {        try {
             // Inicializar componentes base
             const componentesBase = [
                 { nombre: 'gestorNavegacion', verificar: () => window.gestorNavegacion },
-                { nombre: 'gestorModales', verificar: () => window.gestorModales },
-                { nombre: 'algoritmoPriorizacion', verificar: () => window.algoritmoPriorizacion },
-                { nombre: 'notificaciones', verificar: () => window.notificaciones }
+                { nombre: 'gestorModales', verificar: () => window.gestorModales },                { nombre: 'algoritmoPriorizacion', verificar: () => window.algoritmoPriorizacion },
+                { nombre: 'notificaciones', verificar: () => window.notificacionesManager },
+                { nombre: 'configuracion', verificar: () => window.ConfiguracionManager }
             ];
 
             for (const componente of componentesBase) {
@@ -161,6 +160,11 @@ class SistemaGestorFinanciero {
                     if (componente.verificar()) {
                         this.componentes[componente.nombre] = componente.verificar();
                         console.log(`✅ ${componente.nombre} disponible`);
+                        
+                        // Inicializar configuración si está disponible
+                        if (componente.nombre === 'configuracion') {
+                            await this.componentes.configuracion.inicializar();
+                        }
                     } else {
                         console.warn(`⚠️ ${componente.nombre} no disponible`);
                     }

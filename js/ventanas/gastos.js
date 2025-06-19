@@ -148,7 +148,7 @@ class VentanaGastos {
         burbuja.innerHTML = `
             <div class="burbuja-contenido">
                 <div class="burbuja-nombre">${gasto.nombre}</div>
-                <div class="burbuja-monto">$${gasto.monto.toLocaleString()}</div>
+                <div class="burbuja-monto">${window.formatearMoneda ? window.formatearMoneda(gasto.monto) : `$${gasto.monto.toLocaleString()}`}</div>
                 <div class="burbuja-vencimiento">${this.formatearFechaVencimiento(diasVencimiento)}</div>
                 <div class="burbuja-estado">${this.obtenerTextoEstado(gasto.estado)}</div>
             </div>
@@ -291,7 +291,7 @@ class VentanaGastos {
             
             return {
                 id: gasto.id,
-                title: `${gasto.nombre} - $${gasto.monto.toLocaleString()}`,
+                title: `${gasto.nombre} - ${window.formatearMoneda ? window.formatearMoneda(gasto.monto) : `$${gasto.monto.toLocaleString()}`}`,
                 start: gasto.fechaVencimiento,
                 backgroundColor: this.obtenerColorUrgencia(urgencia),
                 borderColor: this.obtenerColorPrioridad(gasto.prioridad),
@@ -351,7 +351,7 @@ class VentanaGastos {
         return `
             <tr class="fila-gasto prioridad-${gasto.prioridad} urgencia-${urgencia}" data-gasto-id="${gasto.id}">
                 <td class="nombre-gasto">${gasto.nombre}</td>
-                <td class="monto-gasto">$${gasto.monto.toLocaleString()}</td>
+                <td class="monto-gasto">${window.formatearMoneda ? window.formatearMoneda(gasto.monto) : `$${gasto.monto.toLocaleString()}`}</td>
                 <td class="prioridad-gasto">
                     <span class="badge prioridad-${gasto.prioridad}">
                         ${this.obtenerTextoPrioridad(gasto.prioridad)}

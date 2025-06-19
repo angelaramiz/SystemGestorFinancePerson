@@ -415,12 +415,16 @@ class VentanaIngresos {
 Monto: ${this.formatearMonto(props.monto)}
 Tipo: ${this.formatearTipo(props.tipoIngreso)}
 ${props.recurrente ? 'Recurrente' : 'Único'}`;
-    }
-
-    /**
+    }    /**
      * Métodos de formato
      */
     formatearMonto(monto) {
+        // Usar la configuración global si está disponible
+        if (window.formatearMoneda) {
+            return window.formatearMoneda(monto);
+        }
+        
+        // Fallback por defecto
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
             currency: 'EUR'
@@ -548,3 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = VentanaIngresos;
 }
+
+// Hacer disponible globalmente la clase
+window.VentanaIngresos = VentanaIngresos;

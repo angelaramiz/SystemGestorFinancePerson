@@ -300,6 +300,25 @@ class IndexedDBManager {
         return await this.getAll('diagramas');
     }
 
+    // Método genérico para obtener todos los elementos de una tabla
+    async obtenerTodos(tabla) {
+        return await this.getAll(tabla);
+    }
+
+    // Método genérico para obtener un elemento por ID
+    async obtener(tabla, id) {
+        return await this.get(tabla, id);
+    }
+
+    // Método genérico para guardar un elemento
+    async guardar(tabla, objeto) {
+        if (objeto.id) {
+            return await this.update(tabla, objeto);
+        } else {
+            return await this.add(tabla, objeto);
+        }
+    }
+
     // Métodos de búsqueda por índice
     async getByIndex(storeName, indexName, value) {
         if (!await this.isInitialized()) throw new Error('DB no inicializada');
