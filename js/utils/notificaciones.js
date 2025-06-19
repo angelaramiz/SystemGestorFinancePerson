@@ -10,6 +10,11 @@ class NotificacionesManager {
         this.maxNotificaciones = 5;
         this.duracionDefecto = 5000;
         
+        // Configuración de notificaciones
+        this.habilitadas = true;
+        this.sonidoHabilitado = false;
+        this.notificacionesBrowser = false;
+        
         this.init();
     }
 
@@ -392,18 +397,29 @@ class NotificacionesManager {
             style: 'currency',
             currency: 'EUR'
         }).format(monto);
-    }
-
-    /**
+    }    /**
      * API de configuración
      */
-    configurar(opciones) {
-        if (opciones.maxNotificaciones) {
+    configurar(opciones = {}) {
+        console.log('🔧 Configurando NotificacionesManager con opciones:', opciones);
+        
+        if (typeof opciones.maxNotificaciones === 'number') {
             this.maxNotificaciones = opciones.maxNotificaciones;
         }
-        if (opciones.duracionDefecto) {
+        if (typeof opciones.duracionDefecto === 'number') {
             this.duracionDefecto = opciones.duracionDefecto;
         }
+        if (typeof opciones.habilitadas === 'boolean') {
+            this.habilitadas = opciones.habilitadas;
+        }
+        if (typeof opciones.sonido === 'boolean') {
+            this.sonidoHabilitado = opciones.sonido;
+        }
+        if (typeof opciones.browser === 'boolean') {
+            this.notificacionesBrowser = opciones.browser;
+        }
+        
+        console.log('✅ NotificacionesManager configurado correctamente');
     }
 
     /**

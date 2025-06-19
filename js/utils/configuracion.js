@@ -451,18 +451,19 @@ class ConfiguracionManager {
             simbolo: this.configuracionActual.simboloMoneda,
             decimales: this.configuracionActual.decimales
         });
-    }
-
-    /**
+    }    /**
      * Aplica configuración de notificaciones
      */
     aplicarConfiguracionNotificaciones() {
-        if (window.NotificacionesManager) {
-            window.NotificacionesManager.configurar({
+        if (window.notificacionesManager && typeof window.notificacionesManager.configurar === 'function') {
+            window.notificacionesManager.configurar({
                 habilitadas: this.configuracionActual.notificacionesHabilitadas,
                 sonido: this.configuracionActual.sonidoNotificaciones,
                 browser: this.configuracionActual.notificacionesBrowser
             });
+            console.log('🔔 Configuración de notificaciones aplicada');
+        } else {
+            console.warn('⚠️ Sistema de notificaciones no disponible para configurar');
         }
     }
 
