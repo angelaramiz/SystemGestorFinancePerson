@@ -120,30 +120,62 @@ body {
 }
 
 .header-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 1rem 2rem;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 .app-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-color);
+    margin: 0;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
 }
 
 .title-icon {
-    font-size: 1.75rem;
+    margin-right: 8px;
+    font-size: 1.2em;
 }
 
 .header-actions {
     display: flex;
     gap: 0.5rem;
+}
+
+/* Logo de la aplicación */
+.app-logo {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+    border-radius: 50%;
+    transition: var(--transition);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.app-logo:hover {
+    transform: scale(1.05) rotate(5deg);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+/* Logo adaptado para modo oscuro */
+[data-theme="dark"] .app-logo {
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.1)) brightness(1.1);
+}
+
+[data-theme="dark"] .app-logo:hover {
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.2)) brightness(1.2) scale(1.05);
+}
+
+.app-title-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
 }
 
 /* ===== NAVEGACIÓN ===== */
@@ -586,6 +618,18 @@ select.form-input option:not([value=""]) {
     }
 }
 
+@media (max-width: 480px) {
+    .app-title {
+        font-size: 1rem;
+    }
+    
+    .app-logo {
+        width: 28px;
+        height: 28px;
+        margin-right: 6px;
+    }
+}
+
 /* ===== UTILIDADES ===== */
 .hidden {
     display: none !important;
@@ -991,4 +1035,54 @@ select.form-input option:not([value=""]) {
     100% {
         opacity: 1;
     }
+}
+
+/* Logo en el modal de configuración */
+.config-logo {
+    width: 60px;
+    height: 60px;
+    margin-right: 15px;
+    border-radius: 50%;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+    transition: var(--transition);
+}
+
+.config-header-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.config-header-content h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+/* Animación sutil para el logo en configuración */
+.config-logo:hover {
+    transform: rotate(360deg) scale(1.1);
+    transition: transform 0.6s ease-in-out;
+}
+
+/* Adaptar logo del modal para modo oscuro */
+[data-theme="dark"] .config-logo {
+    filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1)) brightness(1.1);
+}
+
+/* Mejorar el modal-header para acomodar el logo */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid var(--border-color);
+    background: linear-gradient(135deg, var(--primary-color), #2980b9);
+    color: white;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-header h2 {
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
