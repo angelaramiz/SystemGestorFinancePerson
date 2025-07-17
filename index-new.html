@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Gestor Financiero Personal - Nueva Versión</title>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- FullCalendar para los calendarios -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/es.global.min.js"></script>
+    
+    <!-- Chart.js para gráficos básicos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="src/css/main.css">
+    
+    <!-- PWA Meta tags -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="Sistema de gestión financiera personal moderno y simple">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <!-- Loader inicial -->
+    <div id="app-loader" class="loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p>Cargando Gestor Financiero...</p>
+        </div>
+    </div>
+
+    <!-- Aplicación principal -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Header con navegación -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <span class="title-icon">💰</span>
+                    Gestor Financiero Personal
+                </h1>
+                <div class="header-actions">
+                    <button id="sync-btn" class="btn btn-secondary" title="Sincronizar con Supabase">
+                        🔄 Sync
+                    </button>
+                    <button id="settings-btn" class="btn btn-secondary" title="Configuración">
+                        ⚙️
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navegación principal -->
+        <nav class="main-nav">
+            <div class="nav-tabs">
+                <button class="nav-tab active" data-tab="ingresos">
+                    <span class="tab-icon">📅</span>
+                    <span class="tab-text">Calendario Ingresos</span>
+                </button>
+                <button class="nav-tab" data-tab="consultas">
+                    <span class="tab-icon">📊</span>
+                    <span class="tab-text">Consultas y Análisis</span>
+                </button>
+                <button class="nav-tab" data-tab="gastos">
+                    <span class="tab-icon">📋</span>
+                    <span class="tab-text">Calendario Gastos</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <!-- Pestaña 1: Calendario de Ingresos -->
+            <section id="tab-ingresos" class="tab-content active">
+                <div class="tab-header">
+                    <h2>📅 Calendario de Ingresos</h2>
+                    <div class="tab-actions">
+                        <button id="add-ingreso-btn" class="btn btn-primary">
+                            ➕ Nuevo Ingreso
+                        </button>
+                        <select id="filter-ingresos" class="form-select">
+                            <option value="todos">Todos los tipos</option>
+                            <option value="nominal">Nominales</option>
+                            <option value="recurrente">Recurrentes</option>
+                            <option value="repentino">Repentinos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="calendar-container">
+                    <div id="calendar-ingresos" class="calendar"></div>
+                </div>
+            </section>
+
+            <!-- Pestaña 2: Consultas y Análisis -->
+            <section id="tab-consultas" class="tab-content">
+                <div class="tab-header">
+                    <h2>📊 Consultas y Análisis</h2>
+                    <div class="tab-actions">
+                        <button id="export-data-btn" class="btn btn-secondary">
+                            📤 Exportar
+                        </button>
+                        <button id="refresh-data-btn" class="btn btn-secondary">
+                            🔄 Actualizar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Panel de filtros -->
+                <div class="filters-panel">
+                    <div class="filter-group">
+                        <label>Período:</label>
+                        <input type="date" id="fecha-desde" class="form-input">
+                        <span>hasta</span>
+                        <input type="date" id="fecha-hasta" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>Tipo:</label>
+                        <select id="tipo-consulta" class="form-select">
+                            <option value="resumen">Resumen General</option>
+                            <option value="ingresos">Solo Ingresos</option>
+                            <option value="gastos">Solo Gastos</option>
+                            <option value="comparacion">Comparación</option>
+                        </select>
+                    </div>
+                    <button id="aplicar-filtros-btn" class="btn btn-primary">
+                        🔍 Consultar
+                    </button>
+                </div>
+
+                <!-- Resultados -->
+                <div class="results-container">
+                    <!-- Resumen rápido -->
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <h3>Total Ingresos</h3>
+                            <p class="amount positive" id="total-ingresos">€0.00</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Total Gastos</h3>
+                            <p class="amount negative" id="total-gastos">€0.00</p>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Balance</h3>
+                            <p class="amount" id="balance-total">€0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico -->
+                    <div class="chart-container">
+                        <canvas id="main-chart"></canvas>
+                    </div>
+
+                    <!-- Tabla de datos -->
+                    <div class="table-container">
+                        <table id="data-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Descripción</th>
+                                    <th>Categoría</th>
+                                    <th>Monto</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Los datos se cargarán dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pestaña 3: Calendario de Gastos -->
+            <section id="tab-gastos" class="tab-content">
+                <div class="tab-header">
+                    <h2>📋 Calendario de Gastos</h2>
+                    <div class="tab-actions">
+                        <button id="add-gasto-btn" class="btn btn-primary">
+                            ➕ Nuevo Gasto
+                        </button>
+                        <select id="filter-gastos" class="form-select">
+                            <option value="todos">Todos los tipos</option>
+                            <option value="futuro">Gastos Futuros</option>
+                            <option value="recurrente">Recurrentes</option>
+                            <option value="imprevisto">Imprevistos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="calendar-container">
+                    <div id="calendar-gastos" class="calendar"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal para agregar/editar ingresos -->
+    <div id="modal-ingreso" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-ingreso-title">➕ Nuevo Ingreso</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="form-ingreso" class="modal-form">
+                <div class="form-group">
+                    <label for="ingreso-tipo">Tipo de Ingreso:</label>
+                    <select id="ingreso-tipo" class="form-select" required>
+                        <option value="">Seleccionar tipo</option>
+                        <option value="nominal">Nominal (Salario fijo)</option>
+                        <option value="recurrente">Recurrente (Freelance, alquiler)</option>
+                        <option value="repentino">Repentino (Bonos, ventas)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-descripcion">Descripción:</label>
+                    <input type="text" id="ingreso-descripcion" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-monto">Monto (€):</label>
+                    <input type="number" id="ingreso-monto" class="form-input" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-fecha">Fecha:</label>
+                    <input type="date" id="ingreso-fecha" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="ingreso-categoria">Categoría:</label>
+                    <input type="text" id="ingreso-categoria" class="form-input">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar gastos -->
+    <div id="modal-gasto" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-gasto-title">➕ Nuevo Gasto</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="form-gasto" class="modal-form">
+                <div class="form-group">
+                    <label for="gasto-tipo">Tipo de Gasto:</label>
+                    <select id="gasto-tipo" class="form-select" required>
+                        <option value="">Seleccionar tipo</option>
+                        <option value="futuro">Futuro (Planificado)</option>
+                        <option value="recurrente">Recurrente (Mensual, semanal)</option>
+                        <option value="imprevisto">Imprevisto (Emergencia)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-descripcion">Descripción:</label>
+                    <input type="text" id="gasto-descripcion" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-monto">Monto (€):</label>
+                    <input type="number" id="gasto-monto" class="form-input" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-fecha">Fecha:</label>
+                    <input type="date" id="gasto-fecha" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="gasto-categoria">Categoría:</label>
+                    <input type="text" id="gasto-categoria" class="form-input">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="src/js/modules/supabase-config.js"></script>
+    <script src="src/js/modules/storage.js"></script>
+    <script src="src/js/modules/calendar-ingresos.js"></script>
+    <script src="src/js/modules/calendar-gastos.js"></script>
+    <script src="src/js/modules/consultas.js"></script>
+    <script src="src/js/modules/modals.js"></script>
+    <script src="src/js/app.js"></script>
+    
+    <!-- Registro del Service Worker -->
+    <script>
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('/service-worker.js', {
+                        scope: '/'
+                    });
+                    
+                    console.log('✅ Service Worker registrado:', registration.scope);
+                    
+                    // Detectar actualizaciones
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // Hay una nueva versión disponible
+                                if (confirm('📱 Nueva versión disponible. ¿Recargar para actualizar?')) {
+                                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    });
+                    
+                } catch (error) {
+                    console.log('❌ Error al registrar Service Worker:', error);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
