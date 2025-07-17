@@ -370,65 +370,123 @@ class GestorFinanciero {
      * Mostrar panel de configuración
      */
     mostrarConfiguracion() {
-        // Mostrar info de debugging para México
-        const info = {
-            version: this.version,
-            pais: 'México 🇲🇽',
-            moneda: 'MXN (Pesos Mexicanos)',
-            formato: 'es-MX',
-            zonaHoraria: 'America/Mexico_City',
-            storage: this.storage?.getConnectionStatus(),
-            components: {
-                calendarioIngresos: !!this.calendarioIngresos,
-                calendarioGastos: !!this.calendarioGastos,
-                consultas: !!this.consultas,
-                modals: !!this.modals
-            },
-            currentTab: this.currentTab
-        };
-
-        logger.info('Estado de la aplicación (México):', info);
+        // Actualizar información del sistema
+        this.actualizarInfoConfiguracion();
         
-        // Panel de configuración para desarrollador
-        const isDevMode = logger.isDevelopment;
-        if (isDevMode) {
-            const config = prompt(
-                '🇲🇽 Panel de Desarrollador - México\n\n' +
-                'Opciones:\n' +
-                '1. logs - Activar/desactivar logs\n' +
-                '2. sync - Forzar sincronización\n' +
-                '3. reset - Limpiar datos locales\n' +
-                '4. info - Mostrar información del sistema\n' +
-                '5. moneda - Probar formateo de moneda\n\n' +
-                'Ingresa una opción:'
-            );
-
-            switch(config) {
-                case 'logs':
-                    logger.isEnabled ? logger.disable() : logger.enable();
-                    this.mostrarNotificacion(`🔧 Logs ${logger.isEnabled ? 'activados' : 'desactivados'}`, 'info');
-                    break;
-                case 'sync':
-                    this.sincronizarDatos();
-                    break;
-                case 'reset':
-                    if (confirm('⚠️ ¿Limpiar todos los datos locales?')) {
-                        localStorage.clear();
-                        location.reload();
-                    }
-                    break;
-                case 'info':
-                    alert(JSON.stringify(info, null, 2));
-                    break;
-                case 'moneda':
-                    const test = FormatoMexico.formatearMoneda(1234.56);
-                    this.mostrarNotificacion(`💰 Formato mexicano: ${test}`, 'info');
-                    break;
-                default:
-                    this.mostrarNotificacion('🇲🇽 Panel de configuración próximamente', 'info');
+        // Mostrar modal
+        const modal = document.getElementById('modal-configuracion');
+        if (modal) {
+            modal.classList.add('active');
+            
+            // Mostrar herramientas de desarrollador si está en modo dev
+            const devTools = document.getElementById('dev-tools');
+            if (devTools && logger.isDevelopment) {
+                devTools.style.display = 'block';
             }
         } else {
-            this.mostrarNotificacion('🇲🇽 Panel de configuración próximamente', 'info');
+            logger.error('Modal de configuración no encontrado');
+        }
+    }
+
+    /**
+     * Actualizar información en el modal de configuración
+     */
+    actualizarInfoConfiguracion() {
+        try {
+            // Versión
+            const versionEl = document.getElementById('config-version');
+            if (versionEl) versionEl.textContent = `v${this.version}`;
+
+            // Estado de base de datos
+            const dbStatusEl = document.getElementById('config-db-status');
+            if (dbStatusEl) {
+                const isConnected = this.storage?.getConnectionStatus()?.supabase;
+                dbStatusEl.textContent = isConnected ? 'Conectado' : 'Desconectado';
+                dbStatusEl.className = `status-badge ${isConnected ? 'success' : 'error'}`;
+            }
+
+            // Estado local
+            const localStatusEl = document.getElementById('config-local-status');
+            if (localStatusEl) {
+                const isAvailable = typeof(Storage) !== "undefined";
+                localStatusEl.textContent = isAvailable ? 'Disponible' : 'No disponible';
+                localStatusEl.className = `status-badge ${isAvailable ? 'success' : 'error'}`;
+            }
+
+            // Estadísticas (si existen datos en consultas)
+            if (this.consultas && this.consultas.currentData) {
+                const data = this.consultas.currentData;
+                
+                const totalIngresos = data.ingresos?.reduce((sum, i) => sum + parseFloat(i.monto || 0), 0) || 0;
+                const totalGastos = data.gastos?.reduce((sum, g) => sum + parseFloat(g.monto || 0), 0) || 0;
+                const balance = totalIngresos - totalGastos;
+
+                const totalIngresosEl = document.getElementById('config-total-ingresos');
+                const totalGastosEl = document.getElementById('config-total-gastos');
+                const balanceEl = document.getElementById('config-balance');
+
+                if (totalIngresosEl) totalIngresosEl.textContent = `$${totalIngresos.toFixed(2)} MXN`;
+                if (totalGastosEl) totalGastosEl.textContent = `$${totalGastos.toFixed(2)} MXN`;
+                if (balanceEl) {
+                    balanceEl.textContent = `$${balance.toFixed(2)} MXN`;
+                    balanceEl.style.color = balance >= 0 ? 'var(--success-color)' : 'var(--error-color)';
+                }
+            }
+
+        } catch (error) {
+            logger.error('Error actualizando información de configuración:', error);
+        }
+    }
+
+    /**
+     * Alternar logs (para herramientas de desarrollador)
+     */
+    toggleLogs() {
+        if (logger.isEnabled) {
+            logger.disable();
+            this.mostrarNotificacion('� Logs desactivados', 'info');
+        } else {
+            logger.enable();
+            this.mostrarNotificacion('📝 Logs activados', 'info');
+        }
+    }
+
+    /**
+     * Exportar datos (para herramientas de desarrollador)
+     */
+    async exportarDatos() {
+        try {
+            const datos = {
+                ingresos: await this.storage.getIngresos(),
+                gastos: await this.storage.getGastos(),
+                categorias: await this.storage.getCategorias(),
+                version: this.version,
+                fecha: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `finanzas-mexico-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            this.mostrarNotificacion('📤 Datos exportados correctamente', 'success');
+        } catch (error) {
+            logger.error('Error exportando datos:', error);
+            this.mostrarNotificacion('❌ Error al exportar datos', 'error');
+        }
+    }
+
+    /**
+     * Resetear datos (para herramientas de desarrollador)
+     */
+    resetearDatos() {
+        if (confirm('⚠️ ¿Estás seguro? Esto eliminará todos los datos locales y recargará la aplicación.')) {
+            localStorage.clear();
+            this.mostrarNotificacion('🗑️ Datos limpiados. Recargando...', 'info');
+            setTimeout(() => location.reload(), 1500);
         }
     }
 
@@ -532,8 +590,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const app = new GestorFinanciero();
     app.init();
     
-    // Hacer disponible globalmente para debugging
+    // Hacer disponible globalmente para debugging y modal de configuración
     window.gestorFinanciero = app;
+    window.gestorApp = app; // Alias para el modal
 });
 
 // Hacer clase disponible globalmente

@@ -12,6 +12,8 @@ class GestorModales {
     init() {
         this.configurarEventosGlobales();
         this.configurarFormularios();
+        // Cargar categorías dinámicamente
+        this.cargarCategorias();
     }
 
     configurarEventosGlobales() {
@@ -338,6 +340,57 @@ class GestorModales {
         if (window.GestorModales) {
             window.GestorModales.abrirModal(modalId);
         }
+    }
+
+    /**
+     * Cargar categorías dinámicamente en los selectores
+     */
+    async cargarCategorias() {
+        try {
+            // Obtener categorías desde el storage
+            const categorias = await this.storage.getCategorias();
+            
+            if (categorias && categorias.length > 0) {
+                this.poblarSelectorCategorias('ingreso-categoria', categorias, 'ingreso');
+                this.poblarSelectorCategorias('gasto-categoria', categorias, 'gasto');
+                console.log(`📋 Cargadas ${categorias.length} categorías en selectores`);
+            } else {
+                console.log('📋 Usando categorías estáticas predefinidas');
+            }
+        } catch (error) {
+            console.error('Error cargando categorías:', error);
+            console.log('📋 Usando categorías estáticas como fallback');
+        }
+    }
+
+    /**
+     * Poblar selector de categorías con datos dinámicos
+     */
+    poblarSelectorCategorias(selectorId, categorias, tipo) {
+        const selector = document.getElementById(selectorId);
+        if (!selector) return;
+
+        // Limpiar opciones existentes excepto la primera (placeholder)
+        const placeholder = selector.querySelector('option[value=""]');
+        selector.innerHTML = '';
+        if (placeholder) {
+            selector.appendChild(placeholder);
+        } else {
+            selector.innerHTML = '<option value="">Selecciona una categoría...</option>';
+        }
+
+        // Filtrar categorías por tipo
+        const categoriasFiltradas = categorias.filter(cat => 
+            cat.tipo === tipo || cat.tipo === 'ambos'
+        );
+
+        // Agregar categorías dinámicas
+        categoriasFiltradas.forEach(categoria => {
+            const option = document.createElement('option');
+            option.value = categoria.nombre;
+            option.textContent = `${categoria.icono || '📋'} ${categoria.nombre}`;
+            selector.appendChild(option);
+        });
     }
 
     static mostrarNotificacion(mensaje, tipo) {

@@ -226,7 +226,20 @@
                 </div>
                 <div class="form-group">
                     <label for="ingreso-categoria">Categoría:</label>
-                    <input type="text" id="ingreso-categoria" class="form-input">
+                    <select id="ingreso-categoria" class="form-input" required>
+                        <option value="">💡 Selecciona una categoría de ingreso...</option>
+                        <!-- Categorías de Ingresos para México 🇲🇽 -->
+                        <option value="Sueldo">💼 Sueldo (Trabajo fijo)</option>
+                        <option value="Aguinaldo">🎁 Aguinaldo (Diciembre)</option>
+                        <option value="Prima Vacacional">🏖️ Prima Vacacional (Junio)</option>
+                        <option value="Bonos y Comisiones">💰 Bonos y Comisiones (Ventas, metas)</option>
+                        <option value="Freelance">💻 Freelance (Proyectos independientes)</option>
+                        <option value="Negocio Propio">🏪 Negocio Propio (Comercio, servicio)</option>
+                        <option value="Inversiones">📈 Inversiones (Dividendos, ganancias)</option>
+                        <option value="Remesas">💸 Remesas (Del extranjero)</option>
+                        <option value="Renta de Propiedad">🏘️ Renta de Propiedad (Inmuebles)</option>
+                        <option value="Otros Ingresos">📋 Otros Ingresos (Varios)</option>
+                    </select>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
@@ -267,13 +280,134 @@
                 </div>
                 <div class="form-group">
                     <label for="gasto-categoria">Categoría:</label>
-                    <input type="text" id="gasto-categoria" class="form-input">
+                    <select id="gasto-categoria" class="form-input" required>
+                        <option value="">💡 Selecciona una categoría de gasto...</option>
+                        <!-- Categorías de Gastos para México 🇲🇽 -->
+                        <option value="Comida y Despensa">🍽️ Comida y Despensa (Mercado, super)</option>
+                        <option value="Transporte Público">🚌 Transporte Público (Metro, autobús)</option>
+                        <option value="Renta o Hipoteca">🏠 Renta o Hipoteca (Vivienda)</option>
+                        <option value="CFE (Luz)">⚡ CFE (Luz) (Electricidad)</option>
+                        <option value="Telmex/Internet">📡 Telmex/Internet (Telefonía)</option>
+                        <option value="Gas LP">🔥 Gas LP (Tanque estacionario)</option>
+                        <option value="Gasolina">⛽ Gasolina (Combustible auto)</option>
+                        <option value="IMSS/Salud">⚕️ IMSS/Salud (Médicos, medicinas)</option>
+                        <option value="Educación">📚 Educación (Escuela, cursos)</option>
+                        <option value="Entretenimiento">🎮 Entretenimiento (Cine, juegos)</option>
+                        <option value="Ropa y Calzado">👕 Ropa y Calzado (Vestimenta)</option>
+                        <option value="Farmacia">💊 Farmacia (Medicamentos)</option>
+                        <option value="Supermercado">🛒 Supermercado (Despensa)</option>
+                        <option value="Restaurantes">🍕 Restaurantes (Comida fuera)</option>
+                        <option value="Servicios Bancarios">🏦 Servicios Bancarios (Comisiones)</option>
+                        <option value="Seguros">🛡️ Seguros (Auto, vida, gastos)</option>
+                        <option value="Mantenimiento Hogar">🔧 Mantenimiento Hogar (Reparaciones)</option>
+                        <option value="Impuestos">📋 Impuestos (Predial, tenencia)</option>
+                        <option value="Otros Gastos">📝 Otros Gastos (Varios)</option>
+                    </select>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal de Configuración -->
+    <div id="modal-configuracion" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Configuración - México 🇲🇽</h2>
+                <span class="modal-close">&times;</span>
+            </div>
+            <div class="modal-body">
+                
+                <!-- Información del Sistema -->
+                <div class="config-section">
+                    <h3>📊 Información del Sistema</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>🌎 País:</label>
+                            <span>México 🇲🇽</span>
+                        </div>
+                        <div class="config-item">
+                            <label>💰 Moneda:</label>
+                            <span>MXN (Pesos Mexicanos)</span>
+                        </div>
+                        <div class="config-item">
+                            <label>🕐 Zona Horaria:</label>
+                            <span>America/Mexico_City (GMT-6)</span>
+                        </div>
+                        <div class="config-item">
+                            <label>🔢 Versión:</label>
+                            <span id="config-version">v2.0.0-MX</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado de Conexión -->
+                <div class="config-section">
+                    <h3>🔗 Estado de Conexión</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>🗄️ Base de Datos:</label>
+                            <span id="config-db-status" class="status-badge">Conectado</span>
+                        </div>
+                        <div class="config-item">
+                            <label>💾 Almacenamiento Local:</label>
+                            <span id="config-local-status" class="status-badge">Disponible</span>
+                        </div>
+                        <div class="config-item">
+                            <label>📋 Categorías:</label>
+                            <span id="config-categorias-count">29 categorías mexicanas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Herramientas de Desarrollador -->
+                <div class="config-section" id="dev-tools" style="display: none;">
+                    <h3>🔧 Herramientas de Desarrollador</h3>
+                    <div class="config-actions">
+                        <button class="btn btn-secondary" onclick="window.gestorApp?.sincronizarDatos()">
+                            🔄 Sincronizar Datos
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.gestorApp?.toggleLogs()">
+                            📝 Toggle Logs
+                        </button>
+                        <button class="btn btn-warning" onclick="window.gestorApp?.exportarDatos()">
+                            📤 Exportar Datos
+                        </button>
+                        <button class="btn btn-danger" onclick="window.gestorApp?.resetearDatos()">
+                            🗑️ Limpiar Datos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Información de Uso -->
+                <div class="config-section">
+                    <h3>📈 Estadísticas</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>📊 Total Ingresos:</label>
+                            <span id="config-total-ingresos">$0.00 MXN</span>
+                        </div>
+                        <div class="config-item">
+                            <label>📉 Total Gastos:</label>
+                            <span id="config-total-gastos">$0.00 MXN</span>
+                        </div>
+                        <div class="config-item">
+                            <label>💡 Balance:</label>
+                            <span id="config-balance">$0.00 MXN</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-close">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="location.reload()">
+                    🔄 Recargar Aplicación
+                </button>
+            </div>
         </div>
     </div>
 
