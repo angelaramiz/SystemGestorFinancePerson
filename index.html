@@ -41,6 +41,9 @@
                     Gestor Financiero Personal - México
                 </h1>
                 <div class="header-actions">
+                    <button id="theme-toggle" class="btn btn-secondary" title="Cambiar tema">
+                        🌙
+                    </button>
                     <button id="sync-btn" class="btn btn-secondary" title="Sincronizar">
                         🔄 Sync
                     </button>
@@ -359,6 +362,25 @@
                         <div class="config-item">
                             <label>📋 Categorías:</label>
                             <span id="config-categorias-count">29 categorías mexicanas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personalización -->
+                <div class="config-section">
+                    <h3>🎨 Personalización</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>🌙 Tema:</label>
+                            <select id="theme-selector" class="form-input" style="max-width: 150px;" onchange="window.gestorApp?.cambiarTema(this.value)">
+                                <option value="light">☀️ Claro</option>
+                                <option value="dark">🌙 Oscuro</option>
+                                <option value="auto">🔄 Automático</option>
+                            </select>
+                        </div>
+                        <div class="config-item">
+                            <label>🎯 Modo actual:</label>
+                            <span id="current-theme-display">Claro</span>
                         </div>
                     </div>
                 </div>
