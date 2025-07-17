@@ -5,6 +5,21 @@
 .env.local
 .env.production
 
+# Archivos de diagnóstico y debugging temporales
+diagnostico.html
+debug-*.html
+test-output.html
+
+# Archivos de backup y duplicados
+*-backup.*
+*-old.*
+*-clean.*
+app-clean.js
+
+# Documentación técnica específica (mantener solo la esencial)
+supabase-cors-setup.md
+cors-setup.md
+
 # Archivos de pruebas antiguos eliminados
 # Los archivos actuales son: test-*-nuevo.js, test-simple.html, test-utils.js
 
