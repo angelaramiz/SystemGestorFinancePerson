@@ -14,9 +14,11 @@ class CalendarioGastos {
     }
 
     async init() {
+        console.log('🚀 Iniciando CalendarioGastos...');
         await this.cargarGastos();
         this.initCalendar();
         this.configurarEventos();
+        console.log('✅ CalendarioGastos inicializado completamente');
     }
 
     async cargarGastos() {
@@ -32,32 +34,44 @@ class CalendarioGastos {
     initCalendar() {
         const calendarEl = document.getElementById('calendar-gastos');
         if (!calendarEl) {
-            console.error('Elemento calendar-gastos no encontrado');
+            console.error('❌ Elemento calendar-gastos no encontrado');
             return;
         }
 
-        this.calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'es',
-            height: 'auto',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listWeek'
-            },
-            buttonText: {
-                today: 'Hoy',
-                month: 'Mes',
-                week: 'Semana',
-                list: 'Lista'
-            },
-            events: this.getEventosParaCalendario(),
-            eventClick: this.onEventClick.bind(this),
-            dateClick: this.onDateClick.bind(this),
-            eventDidMount: this.onEventDidMount.bind(this)
-        });
+        if (typeof FullCalendar === 'undefined') {
+            console.error('❌ FullCalendar no está disponible');
+            return;
+        }
 
-        this.calendar.render();
+        console.log('📅 Inicializando calendario de gastos...');
+
+        try {
+            this.calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana',
+                    list: 'Lista'
+                },
+                events: this.getEventosParaCalendario(),
+                eventClick: this.onEventClick.bind(this),
+                dateClick: this.onDateClick.bind(this),
+                eventDidMount: this.onEventDidMount.bind(this)
+            });
+
+            this.calendar.render();
+            console.log('✅ Calendario de gastos renderizado correctamente');
+        } catch (error) {
+            console.error('❌ Error al inicializar calendario de gastos:', error);
+        }
     }
 
     getEventosParaCalendario() {
@@ -68,7 +82,7 @@ class CalendarioGastos {
             })
             .map(gasto => ({
                 id: gasto.id,
-                title: `€${gasto.monto} - ${gasto.descripcion}`,
+                title: `$${gasto.monto} MXN - ${gasto.descripcion}`,
                 start: gasto.fecha,
                 backgroundColor: this.getColorByTipo(gasto.tipo),
                 borderColor: this.getColorByTipo(gasto.tipo),
@@ -124,7 +138,7 @@ class CalendarioGastos {
         }
         
         // Tooltip básico
-        el.title = `${info.event.extendedProps.descripcion}\nTipo: ${info.event.extendedProps.tipo}\nMonto: €${info.event.extendedProps.monto}\nEstado: ${estado}`;
+        el.title = `${info.event.extendedProps.descripcion}\nTipo: ${info.event.extendedProps.tipo}\nMonto: $${info.event.extendedProps.monto} MXN\nEstado: ${estado}`;
     }
 
     mostrarDetallesGasto(gasto) {
@@ -146,7 +160,7 @@ class CalendarioGastos {
                 </div>
                 <div class="detail-row">
                     <strong>Monto:</strong> 
-                    <span class="amount negative">€${gasto.monto}</span>
+                    <span class="amount negative">$${gasto.monto} MXN</span>
                 </div>
                 <div class="detail-row">
                     <strong>Fecha:</strong> ${this.formatFecha(gasto.fecha)}
@@ -318,6 +332,11 @@ class CalendarioGastos {
     async refrescarCalendario() {
         await this.cargarGastos();
         this.refrescarEventos();
+    }
+
+    // Alias para compatibilidad
+    async refresh() {
+        return await this.refrescarCalendario();
     }
 
     async onGastoGuardado(nuevoGasto) {

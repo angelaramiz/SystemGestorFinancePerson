@@ -97,6 +97,8 @@
         
         <div class="status-card">
             <h2>🧪 Pruebas Rápidas</h2>
+            <button class="btn" onclick="runAllTests()" style="background: #059669; margin-right: 1rem;">🚀 Ejecutar Todas las Pruebas</button>
+            <br><br>
             <button class="btn" onclick="testLocalStorage()">Probar localStorage</button>
             <button class="btn" onclick="testSupabase()">Probar Supabase</button>
             <button class="btn" onclick="testPWA()">Probar PWA</button>
@@ -256,8 +258,52 @@
                     return;
                 }
                 
-                // Aquí podrías hacer una prueba real de conexión
-                addLog('⚠️ Prueba de Supabase pendiente (necesita implementación específica)');
+                // Importar configuración de Supabase
+                const { createClient } = window.supabase;
+                
+                // Usar la misma configuración que la aplicación principal
+                const SUPABASE_URL = 'https://hqxghxslzewupwxooxvc.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhxeGdoeHNsemV3dXB3eG9veHZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3NDEyNzcsImV4cCI6MjA2ODMxNzI3N30.2hbwsGMSY3pPyJ18qQe8hOx-fFmM7EJ7pJGDs6Cc0jM';
+                
+                if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                    addLog('⚠️ Credenciales de Supabase no configuradas');
+                    return;
+                }
+                
+                // Crear cliente
+                const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                // Primero probar la conectividad básica con auth
+                addLog('🔍 Verificando conectividad básica...');
+                try {
+                    const { data: { session }, error: authError } = await supabaseClient.auth.getSession();
+                    addLog('✅ Cliente Supabase creado correctamente');
+                } catch (authError) {
+                    addLog('⚠️ Error de autenticación: ' + authError.message);
+                }
+                
+                // Luego probar conexión con una consulta simple a las tablas
+                addLog('🔍 Probando acceso a tablas...');
+                const { data, error } = await supabaseClient
+                    .from('ingresos')
+                    .select('count', { count: 'exact', head: true });
+                
+                if (error) {
+                    if (error.code === 'PGRST116') {
+                        addLog('⚠️ Tabla "ingresos" no existe - Supabase conectado pero faltan tablas');
+                        addLog('💡 Ejecuta las políticas SQL para crear las tablas');
+                    } else if (error.message.includes('cors') || error.message.includes('fetch')) {
+                        addLog('🌐 Posible problema de CORS - verifica la configuración del dominio en Supabase');
+                        addLog('💡 Agrega "localhost:8080" en Authentication > URL Configuration');
+                    } else {
+                        addLog('❌ Error de conexión: ' + error.message);
+                        addLog('🔧 Código de error: ' + (error.code || 'N/A'));
+                    }
+                } else {
+                    addLog('✅ Conexión a Supabase exitosa');
+                    addLog('📊 Tablas accesibles desde la aplicación');
+                }
+                
             } catch (error) {
                 addLog('❌ Error en Supabase: ' + error.message);
             }
@@ -276,6 +322,32 @@
             } else {
                 addLog('❌ Service Worker no soportado');
             }
+        }
+        
+        async function runAllTests() {
+            addLog('🚀 Iniciando suite completa de pruebas...');
+            addLog('='.repeat(50));
+            
+            // Limpiar log anterior parcialmente para no saturar
+            const logElement = document.getElementById('system-log');
+            const lines = logElement.textContent.split('\n');
+            if (lines.length > 20) {
+                logElement.textContent = '📋 Log del sistema (últimas 20 líneas):\n' + 
+                    lines.slice(-20).join('\n') + '\n';
+            }
+            
+            // Ejecutar todas las pruebas en secuencia
+            await testLocalStorage();
+            addLog('─'.repeat(30));
+            
+            await testSupabase();
+            addLog('─'.repeat(30));
+            
+            await testPWA();
+            addLog('─'.repeat(30));
+            
+            addLog('🎉 Suite de pruebas completada');
+            addLog('='.repeat(50));
         }
         
         function clearAllData() {

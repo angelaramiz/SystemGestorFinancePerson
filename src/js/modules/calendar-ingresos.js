@@ -14,9 +14,11 @@ class CalendarioIngresos {
     }
 
     async init() {
+        console.log('🚀 Iniciando CalendarioIngresos...');
         await this.cargarIngresos();
         this.initCalendar();
         this.configurarEventos();
+        console.log('✅ CalendarioIngresos inicializado completamente');
     }
 
     async cargarIngresos() {
@@ -32,32 +34,44 @@ class CalendarioIngresos {
     initCalendar() {
         const calendarEl = document.getElementById('calendar-ingresos');
         if (!calendarEl) {
-            console.error('Elemento calendar-ingresos no encontrado');
+            console.error('❌ Elemento calendar-ingresos no encontrado');
             return;
         }
 
-        this.calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'es',
-            height: 'auto',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,listWeek'
-            },
-            buttonText: {
-                today: 'Hoy',
-                month: 'Mes',
-                week: 'Semana',
-                list: 'Lista'
-            },
-            events: this.getEventosParaCalendario(),
-            eventClick: this.onEventClick.bind(this),
-            dateClick: this.onDateClick.bind(this),
-            eventDidMount: this.onEventDidMount.bind(this)
-        });
+        if (typeof FullCalendar === 'undefined') {
+            console.error('❌ FullCalendar no está disponible');
+            return;
+        }
 
-        this.calendar.render();
+        console.log('📅 Inicializando calendario de ingresos...');
+
+        try {
+            this.calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana',
+                    list: 'Lista'
+                },
+                events: this.getEventosParaCalendario(),
+                eventClick: this.onEventClick.bind(this),
+                dateClick: this.onDateClick.bind(this),
+                eventDidMount: this.onEventDidMount.bind(this)
+            });
+
+            this.calendar.render();
+            console.log('✅ Calendario de ingresos renderizado correctamente');
+        } catch (error) {
+            console.error('❌ Error al inicializar calendario de ingresos:', error);
+        }
     }
 
     getEventosParaCalendario() {
@@ -68,7 +82,7 @@ class CalendarioIngresos {
             })
             .map(ingreso => ({
                 id: ingreso.id,
-                title: `€${ingreso.monto} - ${ingreso.descripcion}`,
+                title: `$${ingreso.monto} MXN - ${ingreso.descripcion}`,
                 start: ingreso.fecha,
                 backgroundColor: this.getColorByTipo(ingreso.tipo),
                 borderColor: this.getColorByTipo(ingreso.tipo),
@@ -115,7 +129,7 @@ class CalendarioIngresos {
         el.style.cursor = 'pointer';
         
         // Tooltip básico
-        el.title = `${info.event.extendedProps.descripcion}\nTipo: ${info.event.extendedProps.tipo}\nMonto: €${info.event.extendedProps.monto}`;
+        el.title = `${info.event.extendedProps.descripcion}\nTipo: ${info.event.extendedProps.tipo}\nMonto: $${info.event.extendedProps.monto} MXN`;
     }
 
     mostrarDetallesIngreso(ingreso) {
@@ -132,7 +146,7 @@ class CalendarioIngresos {
                 </div>
                 <div class="detail-row">
                     <strong>Monto:</strong> 
-                    <span class="amount positive">€${ingreso.monto}</span>
+                    <span class="amount positive">$${ingreso.monto} MXN</span>
                 </div>
                 <div class="detail-row">
                     <strong>Fecha:</strong> ${this.formatFecha(ingreso.fecha)}
@@ -267,6 +281,11 @@ class CalendarioIngresos {
     async refrescarCalendario() {
         await this.cargarIngresos();
         this.refrescarEventos();
+    }
+
+    // Alias para compatibilidad
+    async refresh() {
+        return await this.refrescarCalendario();
     }
 
     async onIngresoGuardado(nuevoIngreso) {

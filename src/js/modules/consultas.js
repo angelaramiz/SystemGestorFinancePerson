@@ -137,11 +137,11 @@ class ModuloConsultas {
         const totalGastosEl = document.getElementById('total-gastos');
         const balanceEl = document.getElementById('balance-total');
         
-        if (totalIngresosEl) totalIngresosEl.textContent = `€${totalIngresos.toFixed(2)}`;
-        if (totalGastosEl) totalGastosEl.textContent = `€${totalGastos.toFixed(2)}`;
+        if (totalIngresosEl) totalIngresosEl.textContent = `$${totalIngresos.toFixed(2)} MXN`;
+        if (totalGastosEl) totalGastosEl.textContent = `$${totalGastos.toFixed(2)} MXN`;
         
         if (balanceEl) {
-            balanceEl.textContent = `€${balance.toFixed(2)}`;
+            balanceEl.textContent = `$${balance.toFixed(2)} MXN`;
             balanceEl.className = `amount ${balance >= 0 ? 'positive' : 'negative'}`;
         }
     }
@@ -306,7 +306,7 @@ class ModuloConsultas {
                 <td>${item.categoria || item.categoria_custom || 'Sin categoría'}</td>
                 <td>
                     <span class="amount ${item.tipoTransaccion === 'ingreso' ? 'positive' : 'negative'}">
-                        €${parseFloat(item.monto).toFixed(2)}
+                        $${parseFloat(item.monto).toFixed(2)} MXN
                     </span>
                 </td>
                 <td>
@@ -383,6 +383,27 @@ class ModuloConsultas {
             } else {
                 container.classList.remove('loading');
             }
+        }
+    }
+
+    // Alias para compatibilidad
+    async refresh() {
+        // Ejecutar la consulta actual con los parámetros existentes
+        const fechaDesde = document.getElementById('fecha-desde')?.value;
+        const fechaHasta = document.getElementById('fecha-hasta')?.value;
+        const tipoConsulta = document.getElementById('tipo-consulta')?.value || 'resumen';
+        
+        if (fechaDesde && fechaHasta) {
+            await this.ejecutarConsulta(fechaDesde, fechaHasta, tipoConsulta);
+        } else {
+            // Usar fechas por defecto si no hay fechas especificadas
+            const ahora = new Date();
+            const unMesAtras = new Date(ahora.getFullYear(), ahora.getMonth() - 1, ahora.getDate());
+            await this.ejecutarConsulta(
+                unMesAtras.toISOString().split('T')[0],
+                ahora.toISOString().split('T')[0],
+                tipoConsulta
+            );
         }
     }
 }

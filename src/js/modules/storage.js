@@ -37,8 +37,18 @@ class StorageManager {
      */
     async init() {
         try {
-            // Intentar inicializar Supabase
-            this.useSupabase = window.SupabaseConfig.init();
+            // Verificar que SupabaseConfig esté disponible
+            if (typeof window.SupabaseConfig === 'undefined') {
+                console.warn('⚠️ SupabaseConfig no disponible - usando localStorage');
+                this.useSupabase = false;
+                this.initLocalStorage();
+                return true;
+            }
+            
+            // Intentar inicializar Supabase con reintentos
+            this.useSupabase = window.SupabaseConfig.initWithRetry ? 
+                window.SupabaseConfig.initWithRetry() : 
+                window.SupabaseConfig.init();
             
             if (this.useSupabase) {
                 console.log('🔗 Usando Supabase como almacenamiento principal');
@@ -341,10 +351,49 @@ class StorageManager {
      * Verificar estado de conexión
      */
     getConnectionStatus() {
-        return {
-            supabase: this.useSupabase,
+        const status = {
+            supabase: this.useSupabase && window.SupabaseConfig.isAvailable(),
             localStorage: typeof Storage !== 'undefined'
         };
+        
+        console.log('📊 Estado de conexión detallado:', {
+            supabaseIntended: this.useSupabase,
+            supabaseAvailable: window.SupabaseConfig?.isAvailable() || false,
+            localStorageAvailable: status.localStorage
+        });
+        
+        return status;
+    }
+    
+    /**
+     * Forzar reinicialización de Supabase
+     */
+    async forceSupabaseInit() {
+        console.log('🔄 Forzando reinicialización de Supabase...');
+        
+        // Verificar que SupabaseConfig esté disponible
+        if (typeof window.SupabaseConfig === 'undefined') {
+            console.log('❌ SupabaseConfig no está disponible');
+            return false;
+        }
+        
+        // Intentar inicializar con el método disponible
+        this.useSupabase = window.SupabaseConfig.initWithRetry ? 
+            window.SupabaseConfig.initWithRetry() : 
+            window.SupabaseConfig.init();
+        
+        if (this.useSupabase) {
+            console.log('✅ Supabase inicializado correctamente tras forzar');
+            try {
+                await this.syncWithSupabase();
+            } catch (error) {
+                console.warn('⚠️ Error en sync inicial:', error);
+            }
+        } else {
+            console.log('❌ No se pudo inicializar Supabase tras forzar');
+        }
+        
+        return this.useSupabase;
     }
 }
 

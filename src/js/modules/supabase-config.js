@@ -5,9 +5,9 @@
 
 // Configuración segura de Supabase
 const getSupabaseConfig = () => {
-    // Intentar obtener de variables de entorno (si usas un bundler como Vite)
-    const envUrl = import.meta?.env?.VITE_SUPABASE_URL;
-    const envKey = import.meta?.env?.VITE_SUPABASE_ANON_KEY;
+    // Intentar obtener de variables de entorno (si está disponible)
+    const envUrl = (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL) || null;
+    const envKey = (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY) || null;
     
     // Si no hay variables de entorno, usar configuración local
     // NOTA: Estas son credenciales PÚBLICAS (anon key) - seguras para frontend
@@ -30,10 +30,17 @@ let supabase = null;
 // Función para inicializar Supabase
 function initSupabase() {
     try {
+        // Verificar que la librería de Supabase esté disponible
+        if (typeof window.supabase === 'undefined') {
+            console.log('⚠️ Librería de Supabase no disponible aún');
+            return false;
+        }
+        
         // Solo inicializar si las credenciales están configuradas
         if (SUPABASE_URL !== 'TU_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'TU_SUPABASE_ANON_KEY') {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             console.log('✅ Supabase inicializado correctamente');
+            console.log('🔗 URL:', SUPABASE_URL);
             return true;
         } else {
             console.log('⚠️ Credenciales de Supabase no configuradas - usando localStorage');
@@ -43,6 +50,31 @@ function initSupabase() {
         console.error('❌ Error al inicializar Supabase:', error);
         return false;
     }
+}
+
+// Función para inicializar con reintentos
+function initSupabaseWithRetry(maxRetries = 3) {
+    let attempts = 0;
+    
+    const tryInit = () => {
+        attempts++;
+        console.log(`🔄 Intentando inicializar Supabase (intento ${attempts}/${maxRetries})`);
+        
+        if (initSupabase()) {
+            return true;
+        }
+        
+        if (attempts < maxRetries) {
+            // Esperar un poco antes del siguiente intento
+            setTimeout(tryInit, 500);
+            return false;
+        } else {
+            console.log('⚠️ Máximo de intentos alcanzado - continuando con localStorage');
+            return false;
+        }
+    };
+    
+    return tryInit();
 }
 
 // Verificar si Supabase está disponible
@@ -170,9 +202,18 @@ const SupabaseUtils = {
         
         let query = supabase.from(table).select('*');
         
-        // Aplicar filtros
+        // Aplicar filtros con lógica especial para fechas
         Object.entries(filters).forEach(([key, value]) => {
-            query = query.eq(key, value);
+            if (key === 'fecha_desde') {
+                // Filtrar fechas mayores o iguales a fecha_desde
+                query = query.gte('fecha', value);
+            } else if (key === 'fecha_hasta') {
+                // Filtrar fechas menores o iguales a fecha_hasta
+                query = query.lte('fecha', value);
+            } else {
+                // Filtros regulares de igualdad
+                query = query.eq(key, value);
+            }
         });
         
         const { data, error } = await query;
@@ -232,6 +273,7 @@ const SupabaseUtils = {
 // Exportar para uso global
 window.SupabaseConfig = {
     init: initSupabase,
+    initWithRetry: initSupabaseWithRetry,
     isAvailable: isSupabaseAvailable,
     getClient: getSupabaseClient,
     tables: TABLES,
