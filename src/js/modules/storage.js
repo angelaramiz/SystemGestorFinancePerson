@@ -166,14 +166,9 @@ class StorageManager {
             };
 
             if (this.useSupabase) {
-                const result = await window.SupabaseConfig.utils.insert('ingresos', {
-                    tipo: nuevoIngreso.tipo,
-                    descripcion: nuevoIngreso.descripcion,
-                    monto: nuevoIngreso.monto,
-                    fecha: nuevoIngreso.fecha,
-                    categoria_custom: nuevoIngreso.categoria,
-                    notas: nuevoIngreso.notas
-                });
+                const dataForSupabase = this.mapFrontendToSupabase(nuevoIngreso, 'ingreso');
+                const result = await window.SupabaseConfig.utils.insert('ingresos', dataForSupabase);
+                return this.mapSupabaseToFrontend(result[0], 'ingreso');
                 return result[0];
             } else {
                 const ingresos = this.getFromLocalStorage('ingresos') || [];
@@ -193,7 +188,8 @@ class StorageManager {
     async getIngresos(filters = {}) {
         try {
             if (this.useSupabase) {
-                return await window.SupabaseConfig.utils.select('ingresos', filters);
+                const data = await window.SupabaseConfig.utils.select('ingresos', filters);
+                return data.map(item => this.mapSupabaseToFrontend(item, 'ingreso'));
             } else {
                 let ingresos = this.getFromLocalStorage('ingresos') || [];
                 
@@ -234,15 +230,9 @@ class StorageManager {
             };
 
             if (this.useSupabase) {
-                const result = await window.SupabaseConfig.utils.insert('gastos', {
-                    tipo: nuevoGasto.tipo,
-                    descripcion: nuevoGasto.descripcion,
-                    monto: nuevoGasto.monto,
-                    fecha: nuevoGasto.fecha,
-                    categoria_custom: nuevoGasto.categoria,
-                    notas: nuevoGasto.notas,
-                    estado: nuevoGasto.estado
-                });
+                const dataForSupabase = this.mapFrontendToSupabase(nuevoGasto, 'gasto');
+                const result = await window.SupabaseConfig.utils.insert('gastos', dataForSupabase);
+                return this.mapSupabaseToFrontend(result[0], 'gasto');
                 return result[0];
             } else {
                 const gastos = this.getFromLocalStorage('gastos') || [];
@@ -262,7 +252,8 @@ class StorageManager {
     async getGastos(filters = {}) {
         try {
             if (this.useSupabase) {
-                return await window.SupabaseConfig.utils.select('gastos', filters);
+                const data = await window.SupabaseConfig.utils.select('gastos', filters);
+                return data.map(item => this.mapSupabaseToFrontend(item, 'gasto'));
             } else {
                 let gastos = this.getFromLocalStorage('gastos') || [];
                 
@@ -394,6 +385,78 @@ class StorageManager {
         }
         
         return this.useSupabase;
+    }
+
+    /**
+     * Mapear datos de Supabase al formato del frontend
+     */
+    mapSupabaseToFrontend(item, type) {
+        const baseData = {
+            id: item.id,
+            tipo: item.titulo || '', // Mapear titulo a tipo para compatibilidad
+            descripcion: item.titulo || '',
+            monto: item.cantidad || 0,
+            categoria: item.categoria || '',
+            fecha: item.fecha || '',
+            notas: item.descripcion || '',
+            created_at: item.created_at,
+            updated_at: item.updated_at
+        };
+
+        // Agregar campos de recurrencia si existen
+        if (item.es_recurrente !== undefined) {
+            baseData.es_recurrente = item.es_recurrente;
+            baseData.frecuencia = item.frecuencia;
+            baseData.intervalo_dias = item.intervalo_dias;
+            baseData.fecha_fin = item.fecha_fin;
+            baseData.activo = item.activo;
+            baseData.proximo_pago = item.proximo_pago;
+            baseData.numero_secuencia = item.numero_secuencia;
+            
+            if (type === 'ingreso' && item.ingreso_padre_id) {
+                baseData.ingreso_padre_id = item.ingreso_padre_id;
+            } else if (type === 'gasto' && item.gasto_padre_id) {
+                baseData.gasto_padre_id = item.gasto_padre_id;
+            }
+        }
+
+        if (type === 'gasto') {
+            baseData.estado = 'pendiente';
+        }
+
+        return baseData;
+    }
+
+    /**
+     * Mapear datos del frontend al formato de Supabase
+     */
+    mapFrontendToSupabase(item, type) {
+        const baseData = {
+            titulo: item.descripcion || item.titulo || '',
+            cantidad: parseFloat(item.monto || item.cantidad || 0),
+            categoria: item.categoria || '',
+            fecha: item.fecha || '',
+            descripcion: item.notas || item.descripcion || ''
+        };
+        
+        // Agregar campos de recurrencia si existen
+        if (item.es_recurrente !== undefined) {
+            baseData.es_recurrente = item.es_recurrente;
+            baseData.frecuencia = item.frecuencia || null;
+            baseData.intervalo_dias = item.intervalo_dias || null;
+            baseData.fecha_fin = item.fecha_fin || null;
+            baseData.activo = item.activo !== undefined ? item.activo : true;
+            baseData.proximo_pago = item.proximo_pago || null;
+            baseData.numero_secuencia = item.numero_secuencia || 1;
+            
+            if (type === 'ingreso' && item.ingreso_padre_id) {
+                baseData.ingreso_padre_id = item.ingreso_padre_id;
+            } else if (type === 'gasto' && item.gasto_padre_id) {
+                baseData.gasto_padre_id = item.gasto_padre_id;
+            }
+        }
+        
+        return baseData;
     }
 }
 

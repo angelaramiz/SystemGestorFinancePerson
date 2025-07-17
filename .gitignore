@@ -79,7 +79,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-.vscode/
+.vscode
+
 
 # Archivos de datos de usuario (opcional)
 # Descomenta si quieres excluir datos de prueba

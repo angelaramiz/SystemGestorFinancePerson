@@ -1086,3 +1086,100 @@ select.form-input option:not([value=""]) {
     color: white;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
+
+/* Campos de recurrencia */
+.recurrence-fields {
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 10px;
+    transition: var(--transition);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+
+.checkbox-group label {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.form-row .form-input {
+    flex: 1;
+    min-width: 120px;
+}
+
+.input-suffix {
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 8px 12px;
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.form-help {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Animación para mostrar/ocultar campos */
+.recurrence-fields {
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mejorar el espaciado en el modal */
+.modal-form .form-group {
+    margin-bottom: 20px;
+}
+
+.modal-form .form-group:last-of-type {
+    margin-bottom: 30px;
+}
+
+/* Estilo especial para campos de recurrencia en modo oscuro */
+[data-theme="dark"] .recurrence-fields {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .input-suffix {
+    background: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-color);
+}
