@@ -18,6 +18,9 @@
     
     <!-- Estilos -->
     <link rel="stylesheet" href="src/css/main.css">
+    <link rel="stylesheet" href="src/css/ventanas.css">
+    <link rel="stylesheet" href="css/supabase-update.css">
+    <link rel="stylesheet" href="css/recurrencia.css">
     
     <!-- PWA Meta tags -->
     <meta name="theme-color" content="#2563eb">
@@ -250,44 +253,40 @@
                     </select>
                 </div>
                 
-                <!-- Campos de Recurrencia -->
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="ingreso-es-recurrente">
-                        <label for="ingreso-es-recurrente">🔄 ¿Es un ingreso recurrente?</label>
+                <!-- Panel de Recurrencia para Ingresos -->
+                <div class="panel-recurrencia">
+                    <h4>🔄 Configuración de Recurrencia</h4>
+                    <div class="form-check">
+                        <input type="checkbox" id="ingreso-es-recurrente" class="form-check-input">
+                        <label for="ingreso-es-recurrente" class="form-check-label">Este ingreso se repite periódicamente</label>
                     </div>
-                </div>
-                
-                <div id="campos-recurrencia" class="recurrence-fields" style="display: none;">
-                    <div class="form-row">
+                    
+                    <div class="campos-recurrencia">
+                        <div class="row-recurrencia">
+                            <div class="col">
+                                <label for="ingreso-frecuencia-recurrencia">Frecuencia:</label>
+                                <select id="ingreso-frecuencia-recurrencia" class="form-select">
+                                    <option value="semanal">Semanal</option>
+                                    <option value="quincenal">Quincenal</option>
+                                    <option value="mensual" selected>Mensual</option>
+                                    <option value="bimestral">Bimestral</option>
+                                    <option value="trimestral">Trimestral</option>
+                                    <option value="semestral">Semestral</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label for="ingreso-dia-recurrencia">Día:</label>
+                                <input type="text" id="ingreso-dia-recurrencia" class="form-input" placeholder="1" value="1">
+                                <small class="form-help">Día del mes o semana</small>
+                            </div>
+                        </div>
+                        
                         <div class="form-group">
-                            <label for="ingreso-frecuencia">Frecuencia:</label>
-                            <select id="ingreso-frecuencia" class="form-input">
-                                <option value="">Seleccionar frecuencia</option>
-                                <option value="semanal">📅 Semanal (cada 7 días)</option>
-                                <option value="quincenal">📆 Quincenal (cada 15 días)</option>
-                                <option value="mensual">🗓️ Mensual (cada mes)</option>
-                                <option value="bimestral">📊 Bimestral (cada 2 meses)</option>
-                                <option value="trimestral">📋 Trimestral (cada 3 meses)</option>
-                                <option value="semestral">📈 Semestral (cada 6 meses)</option>
-                                <option value="anual">🎯 Anual (cada año)</option>
-                                <option value="personalizada">⚙️ Personalizada</option>
-                            </select>
+                            <label for="ingreso-fecha-fin-recurrencia">Fecha límite (opcional):</label>
+                            <input type="date" id="ingreso-fecha-fin-recurrencia" class="form-input">
+                            <small class="form-help">Dejar en blanco si no tiene fecha de finalización</small>
                         </div>
-                    </div>
-                    
-                    <div id="frecuencia-personalizada" class="form-group" style="display: none;">
-                        <label for="ingreso-intervalo-dias">Repetir cada:</label>
-                        <div class="form-row">
-                            <input type="number" id="ingreso-intervalo-dias" class="form-input" min="1" placeholder="30">
-                            <span class="input-suffix">días</span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="ingreso-fecha-fin">Fecha límite (opcional):</label>
-                        <input type="date" id="ingreso-fecha-fin" class="form-input">
-                        <small class="form-help">Deja vacío para recurrencia indefinida</small>
                     </div>
                 </div>
                 
@@ -307,6 +306,8 @@
                 <button class="modal-close">&times;</button>
             </div>
             <form id="form-gasto" class="modal-form">
+                <!-- Campo oculto para ID (edición) -->
+                <input type="hidden" id="gasto-id" name="gasto-id" value="">
                 <div class="form-group">
                     <label for="gasto-tipo">Tipo de Gasto:</label>
                     <select id="gasto-tipo" class="form-select" required>
@@ -354,6 +355,49 @@
                         <option value="Otros Gastos">📝 Otros Gastos (Varios)</option>
                     </select>
                 </div>
+                <!-- Campo para notas adicionales -->
+                <div class="form-group">
+                    <label for="gasto-notas">Notas adicionales:</label>
+                    <textarea id="gasto-notas" class="form-input" rows="2"></textarea>
+                </div>
+                
+                <!-- Panel de Recurrencia para Gastos -->
+                <div class="panel-recurrencia">
+                    <h4>🔄 Configuración de Recurrencia</h4>
+                    <div class="form-check">
+                        <input type="checkbox" id="gasto-es-recurrente" class="form-check-input">
+                        <label for="gasto-es-recurrente" class="form-check-label">Este gasto se repite periódicamente</label>
+                    </div>
+                    
+                    <div class="campos-recurrencia">
+                        <div class="row-recurrencia">
+                            <div class="col">
+                                <label for="gasto-frecuencia-recurrencia">Frecuencia:</label>
+                                <select id="gasto-frecuencia-recurrencia" class="form-select">
+                                    <option value="semanal">Semanal</option>
+                                    <option value="quincenal">Quincenal</option>
+                                    <option value="mensual" selected>Mensual</option>
+                                    <option value="bimestral">Bimestral</option>
+                                    <option value="trimestral">Trimestral</option>
+                                    <option value="semestral">Semestral</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label for="gasto-dia-recurrencia">Día:</label>
+                                <input type="text" id="gasto-dia-recurrencia" class="form-input" placeholder="1" value="1">
+                                <small class="form-help">Día del mes o semana</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gasto-fecha-fin-recurrencia">Fecha límite (opcional):</label>
+                            <input type="date" id="gasto-fecha-fin-recurrencia" class="form-input">
+                            <small class="form-help">Dejar en blanco si no tiene fecha de finalización</small>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -488,10 +532,12 @@
     <script src="src/js/utils/configuracion-mexico.js"></script>
     <script src="src/js/modules/supabase-config.js"></script>
     <script src="src/js/modules/storage.js"></script>
+    <script src="js/utils/recurrencia.js"></script>
     <script src="src/js/modules/calendar-ingresos.js"></script>
     <script src="src/js/modules/calendar-gastos.js"></script>
     <script src="src/js/modules/consultas.js"></script>
     <script src="src/js/modules/modals.js"></script>
+    <script src="src/js/modules/recurrence.js"></script>
     <script src="src/js/app.js"></script>
     
     <!-- Registro del Service Worker -->

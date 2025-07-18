@@ -63,6 +63,10 @@ COMMENT ON COLUMN gastos.proximo_pago IS 'Fecha calculada del siguiente pago';
 COMMENT ON COLUMN gastos.gasto_padre_id IS 'ID del gasto original que genera esta recurrencia';
 COMMENT ON COLUMN gastos.numero_secuencia IS 'Número de orden en la secuencia de pagos';
 
+-- Actualizar privilegios para el rol anon (si es necesario)
+GRANT SELECT, INSERT, UPDATE, DELETE ON ingresos TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON gastos TO anon;
+
 -- =============================================
 -- MENSAJES DE CONFIRMACIÓN
 -- =============================================
