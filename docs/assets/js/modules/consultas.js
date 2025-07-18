@@ -313,7 +313,7 @@ class ModuloConsultas {
                     </span>
                 </td>
                 <td>
-                    <button onclick="window.ModuloConsultas.verDetalle('${item.tipoTransaccion}', '${item.id}')" 
+                    <button onclick="window.ModuloConsultas?.verDetalle('${item.tipoTransaccion || 'ingreso'}', '${item.id || ''}')" 
                             class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                         👁️ Ver
                     </button>
@@ -340,18 +340,42 @@ class ModuloConsultas {
         return new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES');
     }
 
-    verDetalle(tipoTransaccion, id) {
-        // Buscar el item en los datos actuales
-        const item = tipoTransaccion === 'ingreso' 
-            ? this.currentData.ingresos.find(i => i.id === id)
-            : this.currentData.gastos.find(g => g.id === id);
-            
-        if (item) {
-            if (tipoTransaccion === 'ingreso' && window.CalendarioIngresos) {
-                window.CalendarioIngresos.mostrarDetallesIngreso(item);
-            } else if (tipoTransaccion === 'gasto' && window.CalendarioGastos) {
-                window.CalendarioGastos.mostrarDetallesGasto(item);
+    async verDetalle(tipoTransaccion, id) {
+        try {
+            if (!tipoTransaccion || !id) {
+                console.warn('⚠️ Parámetros inválidos para verDetalle:', { tipoTransaccion, id });
+                return;
             }
+
+            if (!this.storage) {
+                console.warn('⚠️ StorageManager no disponible');
+                return;
+            }
+
+            // Buscar el item directamente en el storage para obtener datos frescos
+            let item = null;
+            
+            if (tipoTransaccion === 'ingreso') {
+                const ingresos = await this.storage.getIngresos();
+                item = ingresos.find(i => i.id === id);
+            } else {
+                const gastos = await this.storage.getGastos();
+                item = gastos.find(g => g.id === id);
+            }
+                
+            if (item) {
+                if (tipoTransaccion === 'ingreso' && window.CalendarioIngresos) {
+                    window.CalendarioIngresos.mostrarDetallesIngreso(item);
+                } else if (tipoTransaccion === 'gasto' && window.CalendarioGastos) {
+                    window.CalendarioGastos.mostrarDetallesGasto(item);
+                } else {
+                    console.warn(`⚠️ Calendario no disponible para tipo: ${tipoTransaccion}`);
+                }
+            } else {
+                console.warn(`⚠️ Item no encontrado: ${tipoTransaccion} con ID ${id}`);
+            }
+        } catch (error) {
+            console.error('Error al mostrar detalle:', error);
         }
     }
 
@@ -411,5 +435,5 @@ class ModuloConsultas {
     }
 }
 
-// Crear instancia global
+// Crear instancia global (será inicializada por la aplicación principal)
 window.ModuloConsultas = null;

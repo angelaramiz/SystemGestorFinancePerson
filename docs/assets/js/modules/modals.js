@@ -254,7 +254,7 @@ class GestorModales {
             form.reset();
 
             await window.Alertas.exito('Ingreso guardado', 'El ingreso se ha guardado correctamente');
-            console.log('✅ Ingreso guardado:', nuevoIngreso);
+            console.log('✅ Ingreso guardado:', resultado);
 
         } catch (error) {
             console.error('Error al guardar ingreso:', error);

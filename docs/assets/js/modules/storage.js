@@ -714,9 +714,11 @@ class StorageManager {
         // Agregar campos de recurrencia si existen
         if (item.es_recurrente !== undefined) {
             baseData.es_recurrente = item.es_recurrente;
-            baseData.frecuencia = item.frecuencia;
+            baseData.frecuencia_recurrencia = item.frecuencia;
+            baseData.frecuencia = item.frecuencia; // Mantener compatibilidad
             baseData.intervalo_dias = item.intervalo_dias;
-            baseData.fecha_fin = item.fecha_fin;
+            baseData.fecha_fin_recurrencia = item.fecha_fin;
+            baseData.fecha_fin = item.fecha_fin; // Mantener compatibilidad
             baseData.activo = item.activo;
             baseData.proximo_pago = item.proximo_pago;
             baseData.numero_secuencia = item.numero_secuencia;
@@ -747,9 +749,9 @@ class StorageManager {
         // Agregar campos de recurrencia si existen
         if (item.es_recurrente !== undefined) {
             baseData.es_recurrente = item.es_recurrente;
-            baseData.frecuencia = item.frecuencia || null;
+            baseData.frecuencia = item.frecuencia_recurrencia || item.frecuencia || null;
             baseData.intervalo_dias = item.intervalo_dias || null;
-            baseData.fecha_fin = item.fecha_fin || null;
+            baseData.fecha_fin = item.fecha_fin_recurrencia || item.fecha_fin || null;
             baseData.activo = item.activo !== undefined ? item.activo : true;
             baseData.proximo_pago = item.proximo_pago || null;
             baseData.numero_secuencia = item.numero_secuencia || 1;

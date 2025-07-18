@@ -228,6 +228,8 @@ class GestorFinanciero {
             // Inicializar consultas (primero porque otros dependen de él)
             this.consultas = new ModuloConsultas(this.storage);
             await this.consultas.init();
+            // Asignar a variable global inmediatamente
+            window.ModuloConsultas = this.consultas;
 
             // Inicializar gestores de modales con categorías mexicanas
             this.modals = new GestorModales(this.storage);

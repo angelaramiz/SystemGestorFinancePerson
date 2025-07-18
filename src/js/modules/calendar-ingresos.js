@@ -17,7 +17,7 @@ class CalendarioIngresos {
     async init() {
         console.log('🚀 Iniciando CalendarioIngresos...');
         await this.cargarIngresos();
-        this.initCalendar();
+        await this.initCalendar();
         this.configurarEventos();
         console.log('✅ CalendarioIngresos inicializado completamente');
     }
@@ -32,7 +32,7 @@ class CalendarioIngresos {
         }
     }
 
-    initCalendar() {
+    async initCalendar() {
         const calendarEl = document.getElementById('calendar-ingresos');
         if (!calendarEl) {
             console.error('❌ Elemento calendar-ingresos no encontrado');
@@ -47,6 +47,8 @@ class CalendarioIngresos {
         console.log('📅 Inicializando calendario de ingresos...');
 
         try {
+            const eventos = await this.getEventosParaCalendario();
+            
             this.calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'es',
@@ -62,7 +64,7 @@ class CalendarioIngresos {
                     week: 'Semana',
                     list: 'Lista'
                 },
-                events: this.getEventosParaCalendario(),
+                events: eventos,
                 eventClick: this.onEventClick.bind(this),
                 dateClick: this.onDateClick.bind(this),
                 eventDidMount: this.onEventDidMount.bind(this)
@@ -75,8 +77,9 @@ class CalendarioIngresos {
         }
     }
 
-    getEventosParaCalendario() {
-        return this.ingresos
+    async getEventosParaCalendario() {
+        // Obtener ingresos base
+        let eventos = this.ingresos
             .filter(ingreso => {
                 if (this.currentFilter === 'todos') return true;
                 return ingreso.tipo === this.currentFilter;
@@ -92,18 +95,63 @@ class CalendarioIngresos {
                     monto: ingreso.monto,
                     descripcion: ingreso.descripcion,
                     categoria: ingreso.categoria || ingreso.categoria_custom,
-                    notas: ingreso.notas
+                    notas: ingreso.notas,
+                    es_recurrente: ingreso.es_recurrente || false
                 }
             }));
+
+        // Agregar instancias futuras de ingresos recurrentes
+        if (window.RecurrenceManager) {
+            for (const ingreso of this.ingresos) {
+                if (ingreso.es_recurrente && ingreso.activo) {
+                    const instanciasFuturas = await window.RecurrenceManager.generarInstanciasFuturas(ingreso);
+                    
+                    const eventosFuturos = instanciasFuturas.map(instancia => ({
+                        id: instancia.id,
+                        title: `$${instancia.monto} MXN - ${instancia.descripcion}`,
+                        start: instancia.fecha,
+                        backgroundColor: this.getColorByTipo(instancia.tipo, true), // true para instancia futura
+                        borderColor: this.getColorByTipo(instancia.tipo, true),
+                        className: 'evento-futuro', // Clase CSS para styling
+                        extendedProps: {
+                            tipo: instancia.tipo,
+                            monto: instancia.monto,
+                            descripcion: instancia.descripcion,
+                            categoria: instancia.categoria,
+                            notas: instancia.notas,
+                            es_instancia_futura: true,
+                            numero_secuencia: instancia.numero_secuencia
+                        }
+                    }));
+                    
+                    eventos = eventos.concat(eventosFuturos);
+                }
+            }
+        }
+
+        return eventos;
     }
 
-    getColorByTipo(tipo) {
+    getColorByTipo(tipo, esInstanciaFutura = false) {
         const colores = {
             'nominal': '#10b981',      // Verde - Ingresos fijos
             'recurrente': '#3b82f6',   // Azul - Ingresos recurrentes
             'repentino': '#8b5cf6'     // Púrpura - Ingresos inesperados
         };
-        return colores[tipo] || '#6b7280';
+        
+        let color = colores[tipo] || '#6b7280';
+        
+        // Si es una instancia futura, hacer el color más transparente
+        if (esInstanciaFutura) {
+            // Convertir el color hexadecimal a rgba con opacidad 0.6
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            color = `rgba(${r}, ${g}, ${b}, 0.6)`;
+        }
+        
+        return color;
     }
 
     onEventClick(info) {
@@ -319,9 +367,9 @@ class CalendarioIngresos {
         // Filtro de tipos de ingreso
         const filterSelect = document.getElementById('filter-ingresos');
         if (filterSelect) {
-            filterSelect.addEventListener('change', (e) => {
+            filterSelect.addEventListener('change', async (e) => {
                 this.currentFilter = e.target.value;
-                this.refrescarEventos();
+                await this.refrescarEventos();
             });
         }
 
@@ -347,16 +395,17 @@ class CalendarioIngresos {
         }
     }
 
-    refrescarEventos() {
+    async refrescarEventos() {
         if (this.calendar) {
             this.calendar.removeAllEvents();
-            this.calendar.addEventSource(this.getEventosParaCalendario());
+            const eventos = await this.getEventosParaCalendario();
+            this.calendar.addEventSource(eventos);
         }
     }
 
     async refrescarCalendario() {
         await this.cargarIngresos();
-        this.refrescarEventos();
+        await this.refrescarEventos();
     }
 
     // Alias para compatibilidad
@@ -367,7 +416,7 @@ class CalendarioIngresos {
     async onIngresoGuardado(nuevoIngreso) {
         // Callback cuando se guarda un nuevo ingreso
         this.ingresos.push(nuevoIngreso);
-        this.refrescarEventos();
+        await this.refrescarEventos();
     }
 }
 

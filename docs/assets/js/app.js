@@ -228,16 +228,32 @@ class GestorFinanciero {
             // Inicializar consultas (primero porque otros dependen de él)
             this.consultas = new ModuloConsultas(this.storage);
             await this.consultas.init();
+            // Asignar a variable global inmediatamente
+            window.ModuloConsultas = this.consultas;
+
+            // Inicializar gestores de modales con categorías mexicanas
+            this.modals = new GestorModales(this.storage);
+            // Asignar a variable global inmediatamente
+            window.GestorModales = this.modals;
+            // Iniciar manualmente
+            await this.modals.init();
 
             // Inicializar calendarios con configuración mexicana
             this.calendarioIngresos = new CalendarioIngresos(this.storage, this.configuracion);
+            // Asignar a variable global inmediatamente antes de inicializar
+            window.CalendarioIngresos = this.calendarioIngresos;
             await this.calendarioIngresos.init();
 
             this.calendarioGastos = new CalendarioGastos(this.storage, this.configuracion);
+            // Asignar a variable global inmediatamente antes de inicializar
+            window.CalendarioGastos = this.calendarioGastos;
             await this.calendarioGastos.init();
 
-            // Inicializar modales con categorías mexicanas
-            this.modals = new GestorModales(this.storage);
+            // Asignar el gestor de recurrencias al objeto global para acceso desde otros módulos
+            this.recurrenceManager = window.RecurrenceManager;
+            
+            // Exponer el storageManager para acceso desde RecurrenceManager
+            window.gestorApp.storageManager = this.storage;
 
             // Configurar callbacks entre componentes
             this.configurarCallbacks();
@@ -491,10 +507,14 @@ class GestorFinanciero {
     /**
      * Resetear datos (para herramientas de desarrollador)
      */
-    resetearDatos() {
-        if (confirm('⚠️ ¿Estás seguro? Esto eliminará todos los datos locales y recargará la aplicación.')) {
+    async resetearDatos() {
+        const confirmacion = await window.Alertas.confirmar(
+            '⚠️ Resetear aplicación',
+            'Esto eliminará todos los datos locales y recargará la aplicación. ¿Estás seguro?'
+        );
+        if (confirmacion.isConfirmed) {
             localStorage.clear();
-            this.mostrarNotificacion('🗑️ Datos limpiados. Recargando...', 'info');
+            await window.Alertas.info('Datos limpiados', 'Recargando aplicación...');
             setTimeout(() => location.reload(), 1500);
         }
     }
@@ -652,12 +672,15 @@ class GestorFinanciero {
 
     /**
      * Mostrar notificación temporal
+     * @param {string} mensaje - Mensaje a mostrar (puede incluir HTML)
+     * @param {string} tipo - Tipo de notificación: 'info', 'success', 'warning', 'error'
+     * @param {number} duracion - Duración en ms (0 para no auto-cerrar)
      */
-    mostrarNotificacion(mensaje, tipo = 'info') {
+    mostrarNotificacion(mensaje, tipo = 'info', duracion = 4000) {
         // Crear elemento de notificación
         const notification = document.createElement('div');
         notification.className = `notification notification-${tipo}`;
-        notification.textContent = mensaje;
+        notification.innerHTML = mensaje; // Permitir HTML
         
         // Estilos básicos
         Object.assign(notification.style, {
@@ -670,7 +693,8 @@ class GestorFinanciero {
             fontWeight: '500',
             zIndex: '10000',
             transform: 'translateX(100%)',
-            transition: 'transform 0.3s ease'
+            transition: 'transform 0.3s ease',
+            maxWidth: '400px'
         });
 
         // Colores según tipo
@@ -690,15 +714,33 @@ class GestorFinanciero {
             notification.style.transform = 'translateX(0)';
         }, 100);
 
-        // Remover después de 3 segundos
-        setTimeout(() => {
+        // Botón de cerrar
+        const closeBtn = document.createElement('span');
+        closeBtn.innerHTML = '&times;';
+        closeBtn.style.cssText = 'position:absolute;top:8px;right:8px;cursor:pointer;font-size:16px;';
+        closeBtn.addEventListener('click', () => {
             notification.style.transform = 'translateX(100%)';
             setTimeout(() => {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                 }
             }, 300);
-        }, 3000);
+        });
+        notification.appendChild(closeBtn);
+        notification.style.position = 'relative';
+        notification.style.paddingRight = '30px';
+
+        // Auto-cerrar después del tiempo especificado (si no es 0)
+        if (duracion !== 0) {
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, duracion);
+        }
     }
 
     /**
@@ -713,6 +755,177 @@ class GestorFinanciero {
             return window.SupabaseConfig.reiniciar();
         }
         return Promise.reject(new Error('SupabaseConfig no disponible'));
+    }
+
+    /**
+     * Recargar todos los datos - usado por RecurrenceManager
+     */
+    async cargarTabla() {
+        try {
+            // Actualizar todos los componentes
+            if (this.calendarioIngresos) await this.calendarioIngresos.refresh();
+            if (this.calendarioGastos) await this.calendarioGastos.refresh();
+            if (this.consultas) await this.consultas.refresh();
+            
+            logger.info('Datos recargados después de procesar ingresos recurrentes');
+        } catch (error) {
+            logger.error('Error al recargar datos:', error);
+        }
+    }
+
+    /**
+     * Mostrar el script SQL para actualizar la base de datos de Supabase
+     */
+    async mostrarScriptActualizacionBD() {
+        try {
+            // Leer el archivo SQL
+            let scriptSQL = '';
+            try {
+                const response = await fetch('src/scripts/supabase-recurrencia-update.sql');
+                if (response.ok) {
+                    scriptSQL = await response.text();
+                } else {
+                    throw new Error('No se pudo cargar el archivo SQL');
+                }
+            } catch (fetchError) {
+                logger.warn('No se pudo cargar el archivo SQL:', fetchError);
+                // Script SQL embebido como fallback
+                scriptSQL = `-- Script para actualizar la estructura de la base de datos para soportar recurrencia
+-- Ejecutar este script en el panel SQL de Supabase
+
+-- Tabla de ingresos: Agregar columnas para recurrencia
+ALTER TABLE ingresos 
+  ADD COLUMN IF NOT EXISTS es_recurrente BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS frecuencia_recurrencia VARCHAR(20) DEFAULT 'mensual',
+  ADD COLUMN IF NOT EXISTS dia_recurrencia VARCHAR(10) DEFAULT '1',
+  ADD COLUMN IF NOT EXISTS fecha_fin_recurrencia DATE,
+  ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS proximo_pago DATE,
+  ADD COLUMN IF NOT EXISTS numero_secuencia INTEGER DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS ingreso_padre_id UUID;
+
+-- Tabla de gastos: Agregar columnas para recurrencia
+ALTER TABLE gastos 
+  ADD COLUMN IF NOT EXISTS es_recurrente BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS frecuencia_recurrencia VARCHAR(20) DEFAULT 'mensual',
+  ADD COLUMN IF NOT EXISTS dia_recurrencia VARCHAR(10) DEFAULT '1',
+  ADD COLUMN IF NOT EXISTS fecha_fin_recurrencia DATE,
+  ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS proximo_pago DATE,
+  ADD COLUMN IF NOT EXISTS numero_secuencia INTEGER DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS gasto_padre_id UUID;
+
+-- Crear índices para mejorar rendimiento en búsquedas
+CREATE INDEX IF NOT EXISTS idx_ingresos_recurrentes ON ingresos(es_recurrente) WHERE es_recurrente = TRUE;
+CREATE INDEX IF NOT EXISTS idx_gastos_recurrentes ON gastos(es_recurrente) WHERE es_recurrente = TRUE;`;
+            }
+            
+            // Crear contenido formateado para el modal
+            const contenidoHTML = `
+                <div class="sql-instructions">
+                    <p>Para habilitar la funcionalidad de recurrencia, necesita ejecutar el siguiente script SQL en su base de datos Supabase:</p>
+                    <div class="code-container">
+                        <pre><code class="language-sql">${scriptSQL}</code></pre>
+                        <button id="btn-copiar-sql" class="btn btn-secondary">📋 Copiar SQL</button>
+                    </div>
+                    <p>Pasos para ejecutar el script:</p>
+                    <ol>
+                        <li>Inicie sesión en su <a href="https://supabase.com" target="_blank">panel de control de Supabase</a></li>
+                        <li>Seleccione su proyecto</li>
+                        <li>Vaya a "SQL Editor"</li>
+                        <li>Pegue el script anterior</li>
+                        <li>Ejecute el script haciendo clic en "Run"</li>
+                    </ol>
+                    <p>Una vez ejecutado, la funcionalidad de recurrencia estará disponible.</p>
+                </div>
+            `;
+            
+            // Mostrar modal con el script
+            if (this.modals) {
+                this.modals.mostrarModal('🔄 Actualización de Base de Datos', contenidoHTML);
+                
+                // Agregar funcionalidad para copiar el SQL
+                setTimeout(() => {
+                    const btnCopiarSQL = document.getElementById('btn-copiar-sql');
+                    if (btnCopiarSQL) {
+                        btnCopiarSQL.addEventListener('click', () => {
+                            navigator.clipboard.writeText(scriptSQL)
+                                .then(() => {
+                                    btnCopiarSQL.textContent = '✅ Copiado!';
+                                    setTimeout(() => {
+                                        btnCopiarSQL.textContent = '📋 Copiar SQL';
+                                    }, 2000);
+                                })
+                                .catch(err => {
+                                    console.error('Error al copiar el SQL:', err);
+                                    btnCopiarSQL.textContent = '❌ Error al copiar';
+                                });
+                        });
+                    }
+                }, 500);
+            } else {
+                console.error('No se pudo mostrar el modal - GestorModales no inicializado');
+            }
+            
+        } catch (error) {
+            logger.error('Error al mostrar script de actualización:', error);
+            this.mostrarNotificacion('❌ Error al cargar el script de actualización', 'error');
+        }
+    }
+
+    /**
+     * Verificar si las columnas de recurrencia existen en la base de datos
+     * (función auxiliar para desarrolladores)
+     */
+    async verificarColumnasRecurrencia() {
+        if (!this.storage.useSupabase) {
+            console.info('No se está utilizando Supabase, la verificación no es necesaria.');
+            return true;
+        }
+        
+        try {
+            logger.info('🔍 Verificando estructura de base de datos para recurrencia...');
+            
+            if (window.SupabaseConfig && window.SupabaseConfig.client) {
+                // Verificar tabla ingresos
+                const { data: dataIngresos, error: errorIngresos } = await window.SupabaseConfig.client
+                    .from('ingresos')
+                    .select('es_recurrente')
+                    .limit(1)
+                    .maybeSingle();
+                
+                // Verificar tabla gastos
+                const { data: dataGastos, error: errorGastos } = await window.SupabaseConfig.client
+                    .from('gastos')
+                    .select('es_recurrente')
+                    .limit(1)
+                    .maybeSingle();
+                
+                const ingresosOK = !errorIngresos || errorIngresos.code !== '42703';
+                const gastosOK = !errorGastos || errorGastos.code !== '42703';
+                
+                const resultado = {
+                    ingresosOK,
+                    gastosOK,
+                    actualizado: ingresosOK && gastosOK
+                };
+                
+                logger.info('Resultado de verificación:', resultado);
+                
+                if (resultado.actualizado) {
+                    this.mostrarNotificacion('✅ La estructura de la base de datos está actualizada para recurrencia', 'success');
+                } else {
+                    this.mostrarScriptActualizacionBD();
+                }
+                
+                return resultado;
+            } else {
+                throw new Error('SupabaseConfig no está disponible');
+            }
+        } catch (error) {
+            logger.error('Error verificando estructura de BD:', error);
+            return false;
+        }
     }
 }
 

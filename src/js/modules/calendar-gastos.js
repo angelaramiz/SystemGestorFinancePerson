@@ -17,7 +17,7 @@ class CalendarioGastos {
     async init() {
         console.log('🚀 Iniciando CalendarioGastos...');
         await this.cargarGastos();
-        this.initCalendar();
+        await this.initCalendar();
         this.configurarEventos();
         console.log('✅ CalendarioGastos inicializado completamente');
     }
@@ -32,7 +32,7 @@ class CalendarioGastos {
         }
     }
 
-    initCalendar() {
+    async initCalendar() {
         const calendarEl = document.getElementById('calendar-gastos');
         if (!calendarEl) {
             console.error('❌ Elemento calendar-gastos no encontrado');
@@ -47,6 +47,8 @@ class CalendarioGastos {
         console.log('📅 Inicializando calendario de gastos...');
 
         try {
+            const eventos = await this.getEventosParaCalendario();
+            
             this.calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'es',
@@ -62,7 +64,7 @@ class CalendarioGastos {
                     week: 'Semana',
                     list: 'Lista'
                 },
-                events: this.getEventosParaCalendario(),
+                events: eventos,
                 eventClick: this.onEventClick.bind(this),
                 dateClick: this.onDateClick.bind(this),
                 eventDidMount: this.onEventDidMount.bind(this)
@@ -75,8 +77,9 @@ class CalendarioGastos {
         }
     }
 
-    getEventosParaCalendario() {
-        return this.gastos
+    async getEventosParaCalendario() {
+        // Obtener gastos base
+        let eventos = this.gastos
             .filter(gasto => {
                 if (this.currentFilter === 'todos') return true;
                 return gasto.tipo === this.currentFilter;
@@ -94,18 +97,65 @@ class CalendarioGastos {
                     descripcion: gasto.descripcion,
                     categoria: gasto.categoria || gasto.categoria_custom,
                     notas: gasto.notas,
-                    estado: gasto.estado || 'pendiente'
+                    estado: gasto.estado || 'pendiente',
+                    es_recurrente: gasto.es_recurrente || false
                 }
             }));
+
+        // Agregar instancias futuras de gastos recurrentes
+        if (window.RecurrenceManager) {
+            for (const gasto of this.gastos) {
+                if (gasto.es_recurrente && gasto.activo) {
+                    const instanciasFuturas = await window.RecurrenceManager.generarInstanciasFuturasGastos(gasto);
+                    
+                    const eventosFuturos = instanciasFuturas.map(instancia => ({
+                        id: instancia.id,
+                        title: `$${instancia.monto} MXN - ${instancia.descripcion}`,
+                        start: instancia.fecha,
+                        backgroundColor: this.getColorByTipo(instancia.tipo, true), // true para instancia futura
+                        borderColor: this.getColorByTipo(instancia.tipo, true),
+                        textColor: '#ffffff',
+                        className: 'evento-futuro-gasto', // Clase CSS para styling
+                        extendedProps: {
+                            tipo: instancia.tipo,
+                            monto: instancia.monto,
+                            descripcion: instancia.descripcion,
+                            categoria: instancia.categoria,
+                            notas: instancia.notas,
+                            es_instancia_futura: true,
+                            numero_secuencia: instancia.numero_secuencia,
+                            estado: 'futuro'
+                        }
+                    }));
+                    
+                    eventos = eventos.concat(eventosFuturos);
+                }
+            }
+        }
+
+        return eventos;
     }
 
-    getColorByTipo(tipo) {
+    getColorByTipo(tipo, esInstanciaFutura = false) {
         const colores = {
             'futuro': '#3b82f6',       // Azul - Gastos futuros planificados
             'recurrente': '#f59e0b',   // Naranja - Gastos recurrentes
             'imprevisto': '#ef4444'    // Rojo - Gastos imprevistos
         };
-        return colores[tipo] || '#6b7280';
+        
+        let color = colores[tipo] || '#6b7280';
+        
+        // Si es una instancia futura, hacer el color más transparente
+        if (esInstanciaFutura) {
+            // Convertir el color hexadecimal a rgba con opacidad 0.6
+            const hex = color.replace('#', '');
+            const r = parseInt(hex.substr(0, 2), 16);
+            const g = parseInt(hex.substr(2, 2), 16);
+            const b = parseInt(hex.substr(4, 2), 16);
+            color = `rgba(${r}, ${g}, ${b}, 0.6)`;
+        }
+        
+        return color;
     }
 
     onEventClick(info) {
@@ -343,9 +393,9 @@ class CalendarioGastos {
         // Filtro de tipos de gasto
         const filterSelect = document.getElementById('filter-gastos');
         if (filterSelect) {
-            filterSelect.addEventListener('change', (e) => {
+            filterSelect.addEventListener('change', async (e) => {
                 this.currentFilter = e.target.value;
-                this.refrescarEventos();
+                await this.refrescarEventos();
             });
         }
 
@@ -371,16 +421,17 @@ class CalendarioGastos {
         }
     }
 
-    refrescarEventos() {
+    async refrescarEventos() {
         if (this.calendar) {
             this.calendar.removeAllEvents();
-            this.calendar.addEventSource(this.getEventosParaCalendario());
+            const eventos = await this.getEventosParaCalendario();
+            this.calendar.addEventSource(eventos);
         }
     }
 
     async refrescarCalendario() {
         await this.cargarGastos();
-        this.refrescarEventos();
+        await this.refrescarEventos();
     }
 
     // Alias para compatibilidad
@@ -391,7 +442,7 @@ class CalendarioGastos {
     async onGastoGuardado(nuevoGasto) {
         // Callback cuando se guarda un nuevo gasto
         this.gastos.push(nuevoGasto);
-        this.refrescarEventos();
+        await this.refrescarEventos();
     }
 }
 

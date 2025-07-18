@@ -425,6 +425,106 @@ class RecurrenceManager {
             }, 100);
         }
     }
+
+    /**
+     * Generar instancias futuras de un ingreso recurrente para mostrar en el calendario
+     */
+    async generarInstanciasFuturas(ingresoRecurrente, cantidadInstancias = 12) {
+        try {
+            const instancias = [];
+            let fechaActual = new Date(ingresoRecurrente.proximo_pago);
+            const fechaFin = ingresoRecurrente.fecha_fin_recurrencia ? new Date(ingresoRecurrente.fecha_fin_recurrencia) : null;
+            
+            // Si no hay fecha fin, limitar a 6 meses máximo
+            if (!fechaFin) {
+                cantidadInstancias = Math.min(cantidadInstancias, 6);
+            }
+            
+            for (let i = 0; i < cantidadInstancias; i++) {
+                // Verificar si ya pasó la fecha límite
+                if (fechaFin && fechaActual > fechaFin) {
+                    break;
+                }
+                
+                const nuevaInstancia = {
+                    id: `${ingresoRecurrente.id}_instancia_${i + 1}`,
+                    tipo: ingresoRecurrente.tipo,
+                    descripcion: `${ingresoRecurrente.descripcion} (${ingresoRecurrente.frecuencia_recurrencia} #${i + 1})`,
+                    monto: ingresoRecurrente.monto,
+                    fecha: fechaActual.toISOString().split('T')[0],
+                    categoria: ingresoRecurrente.categoria,
+                    notas: ingresoRecurrente.notas,
+                    es_recurrente: false, // Las instancias no son recurrentes
+                    es_instancia_futura: true, // Marcar como instancia futura
+                    ingreso_padre_id: ingresoRecurrente.id,
+                    numero_secuencia: i + 2, // Empezar desde 2 porque el padre es 1
+                    estado: 'futuro'
+                };
+                
+                instancias.push(nuevaInstancia);
+                
+                // Calcular siguiente fecha
+                fechaActual = new Date(fechaActual.getTime() + (ingresoRecurrente.intervalo_dias * 24 * 60 * 60 * 1000));
+            }
+            
+            logger.info(`📅 Generadas ${instancias.length} instancias futuras para ingreso recurrente`);
+            return instancias;
+            
+        } catch (error) {
+            logger.error('Error al generar instancias futuras:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Generar instancias futuras de un gasto recurrente para mostrar en el calendario
+     */
+    async generarInstanciasFuturasGastos(gastoRecurrente, cantidadInstancias = 6) {
+        try {
+            const instancias = [];
+            let fechaActual = new Date(gastoRecurrente.proximo_pago);
+            const fechaFin = gastoRecurrente.fecha_fin_recurrencia ? new Date(gastoRecurrente.fecha_fin_recurrencia) : null;
+            
+            // Si no hay fecha fin, limitar a 6 meses máximo
+            if (!fechaFin) {
+                cantidadInstancias = Math.min(cantidadInstancias, 6);
+            }
+            
+            for (let i = 0; i < cantidadInstancias; i++) {
+                // Verificar si ya pasó la fecha límite
+                if (fechaFin && fechaActual > fechaFin) {
+                    break;
+                }
+                
+                const nuevaInstancia = {
+                    id: `${gastoRecurrente.id}_gasto_instancia_${i + 1}`,
+                    tipo: gastoRecurrente.tipo,
+                    descripcion: `${gastoRecurrente.descripcion} (${gastoRecurrente.frecuencia_recurrencia} #${i + 1})`,
+                    monto: gastoRecurrente.monto,
+                    fecha: fechaActual.toISOString().split('T')[0],
+                    categoria: gastoRecurrente.categoria,
+                    notas: gastoRecurrente.notas,
+                    es_recurrente: false, // Las instancias no son recurrentes
+                    es_instancia_futura: true, // Marcar como instancia futura
+                    gasto_padre_id: gastoRecurrente.id,
+                    numero_secuencia: i + 2, // Empezar desde 2 porque el padre es 1
+                    estado: 'futuro'
+                };
+                
+                instancias.push(nuevaInstancia);
+                
+                // Calcular siguiente fecha
+                fechaActual = new Date(fechaActual.getTime() + (gastoRecurrente.intervalo_dias * 24 * 60 * 60 * 1000));
+            }
+            
+            logger.info(`📅 Generadas ${instancias.length} instancias futuras para gasto recurrente`);
+            return instancias;
+            
+        } catch (error) {
+            logger.error('Error al generar instancias futuras de gastos:', error);
+            return [];
+        }
+    }
 }
 
 // Crear instancia global
