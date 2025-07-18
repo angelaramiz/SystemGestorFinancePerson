@@ -81,21 +81,20 @@ const CONFIGURACION_MEXICO = {
                 { nombre: 'Otros Ingresos', icono: '📋', color: '#6b7280' }
             ],
 
-            // Categorías de gastos (México)
+            // Categorías de gastos optimizadas (México)
             categoriasGastos: [
-                { nombre: 'Comida', icono: '🍽️', color: '#ef4444' },
-                { nombre: 'Transporte', icono: '🚌', color: '#f97316' },
-                { nombre: 'Renta/Hipoteca', icono: '🏠', color: '#eab308' },
-                { nombre: 'Servicios (CFE, Telmex)', icono: '⚡', color: '#06b6d4' },
-                { nombre: 'Gas', icono: '🔥', color: '#f59e0b' },
-                { nombre: 'Gasolina', icono: '⛽', color: '#dc2626' },
-                { nombre: 'Salud/IMSS', icono: '⚕️', color: '#22c55e' },
+                { nombre: 'Alimentación', icono: '🍽️', color: '#ef4444' },
+                { nombre: 'Vivienda', icono: '🏠', color: '#eab308' },
+                { nombre: 'Servicios Públicos', icono: '⚡', color: '#06b6d4' },
+                { nombre: 'Transporte', icono: '�', color: '#f97316' },
+                { nombre: 'Salud', icono: '⚕️', color: '#22c55e' },
                 { nombre: 'Educación', icono: '📚', color: '#3b82f6' },
                 { nombre: 'Entretenimiento', icono: '🎮', color: '#a855f7' },
-                { nombre: 'Ropa', icono: '👕', color: '#ec4899' },
-                { nombre: 'Farmacia', icono: '💊', color: '#059669' },
-                { nombre: 'Supermercado', icono: '🛒', color: '#d97706' },
-                { nombre: 'Restaurantes', icono: '🍕', color: '#db2777' },
+                { nombre: 'Ropa y Calzado', icono: '👕', color: '#ec4899' },
+                { nombre: 'Servicios Financieros', icono: '🏦', color: '#64748b' },
+                { nombre: 'Tarjetas de Crédito', icono: '�', color: '#dc2626' },
+                { nombre: 'Préstamos y Créditos', icono: '🏛️', color: '#7c2d12' },
+                { nombre: 'Mantenimiento Hogar', icono: '🔧', color: '#84cc16' },
                 { nombre: 'Otros Gastos', icono: '📝', color: '#6b7280' }
             ],
 

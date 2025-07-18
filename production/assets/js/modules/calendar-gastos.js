@@ -276,7 +276,7 @@ class CalendarioGastos {
             console.log('✅ Gasto marcado como pagado');
         } catch (error) {
             console.error('Error al marcar gasto como pagado:', error);
-            alert('Error al actualizar el gasto');
+            await window.Alertas.error('Error al actualizar', 'No se pudo actualizar el gasto');
         }
     }
 
@@ -316,12 +316,13 @@ class CalendarioGastos {
             }
         } catch (error) {
             console.error('Error al editar gasto:', error);
-            alert('Error al abrir el formulario de edición');
+            await window.Alertas.error('Error al editar', 'No se pudo abrir el formulario de edición');
         }
     }
 
     async eliminarGasto(id) {
-        if (confirm('¿Estás seguro de que quieres eliminar este gasto?')) {
+        const confirmacion = await window.Alertas.confirmarEliminacion('gasto');
+        if (confirmacion.isConfirmed) {
             try {
                 await this.storage.deleteItem('gasto', id);
                 await this.refrescarCalendario();
@@ -333,7 +334,7 @@ class CalendarioGastos {
                 console.log('✅ Gasto eliminado');
             } catch (error) {
                 console.error('Error al eliminar gasto:', error);
-                alert('Error al eliminar el gasto');
+                await window.Alertas.error('Error al eliminar', 'No se pudo eliminar el gasto');
             }
         }
     }

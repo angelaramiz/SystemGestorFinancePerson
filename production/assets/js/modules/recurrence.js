@@ -45,10 +45,12 @@ class RecurrenceManager {
             selectFrecuencia.addEventListener('change', (e) => {
                 if (e.target.value === 'personalizada') {
                     campoPersonalizada.style.display = 'block';
-                    document.getElementById('ingreso-intervalo-dias').required = true;
+                    const intervaloDiasEl = document.getElementById('ingreso-intervalo-dias');
+                    if (intervaloDiasEl) intervaloDiasEl.required = true;
                 } else {
                     campoPersonalizada.style.display = 'none';
-                    document.getElementById('ingreso-intervalo-dias').required = false;
+                    const intervaloDiasEl = document.getElementById('ingreso-intervalo-dias');
+                    if (intervaloDiasEl) intervaloDiasEl.required = false;
                 }
             });
         }
@@ -65,20 +67,45 @@ class RecurrenceManager {
     }
 
     /**
-     * Limpiar campos de recurrencia
+     * Limpiar campos de recurrencia (función genérica)
      */
-    limpiarCamposRecurrencia() {
-        document.getElementById('ingreso-frecuencia').value = '';
-        document.getElementById('ingreso-intervalo-dias').value = '';
-        document.getElementById('ingreso-fecha-fin').value = '';
-        document.getElementById('frecuencia-personalizada').style.display = 'none';
+    limpiarCamposRecurrencia(tipo = 'ingreso') {
+        try {
+            // Obtener prefijo según el tipo
+            const prefijo = tipo === 'ingreso' ? 'ingreso' : 'gasto';
+            
+            // Verificar y limpiar campos
+            const frecuenciaEl = document.getElementById(`${prefijo}-frecuencia`);
+            if (frecuenciaEl) frecuenciaEl.value = '';
+            
+            const intervaloDiasEl = document.getElementById(`${prefijo}-intervalo-dias`);
+            if (intervaloDiasEl) intervaloDiasEl.value = '';
+            
+            const fechaFinEl = document.getElementById(`${prefijo}-fecha-fin`);
+            if (fechaFinEl) fechaFinEl.value = '';
+            
+            const frecuenciaPersonalizadaEl = document.getElementById('frecuencia-personalizada');
+            if (frecuenciaPersonalizadaEl) frecuenciaPersonalizadaEl.style.display = 'none';
+            
+            // Limpiar checkbox de recurrencia
+            const esRecurrenteEl = document.getElementById(`${prefijo}-es-recurrente`);
+            if (esRecurrenteEl) esRecurrenteEl.checked = false;
+            
+            // Ocultar campos de recurrencia
+            const camposRecurrenciaEl = document.getElementById('campos-recurrencia');
+            if (camposRecurrenciaEl) camposRecurrenciaEl.style.display = 'none';
+            
+        } catch (error) {
+            console.warn('Error al limpiar campos de recurrencia:', error);
+        }
     }
 
     /**
      * Obtener datos de recurrencia del formulario
      */
     obtenerDatosRecurrencia() {
-        const esRecurrente = document.getElementById('ingreso-es-recurrente').checked;
+        const esRecurrenteEl = document.getElementById('ingreso-es-recurrente');
+        const esRecurrente = esRecurrenteEl ? esRecurrenteEl.checked : false;
         
         if (!esRecurrente) {
             return {
@@ -91,20 +118,26 @@ class RecurrenceManager {
             };
         }
 
-        const frecuencia = document.getElementById('ingreso-frecuencia').value;
-        const fechaFin = document.getElementById('ingreso-fecha-fin').value || null;
+        const frecuenciaEl = document.getElementById('ingreso-frecuencia');
+        const frecuencia = frecuenciaEl ? frecuenciaEl.value : null;
+        
+        const fechaFinEl = document.getElementById('ingreso-fecha-fin');
+        const fechaFin = fechaFinEl ? fechaFinEl.value || null : null;
+        
         let intervaloDias = null;
 
         // Calcular intervalo en días
         if (frecuencia === 'personalizada') {
-            intervaloDias = parseInt(document.getElementById('ingreso-intervalo-dias').value) || 30;
+            const intervaloDiasEl = document.getElementById('ingreso-intervalo-dias');
+            intervaloDias = intervaloDiasEl ? parseInt(intervaloDiasEl.value) || 30 : 30;
         } else if (this.frecuencias[frecuencia]) {
             intervaloDias = this.frecuencias[frecuencia];
         }
 
         // Calcular próximo pago
-        const fechaInicial = document.getElementById('ingreso-fecha').value;
-        const proximoPago = this.calcularProximoPago(fechaInicial, intervaloDias);
+        const fechaInicialEl = document.getElementById('ingreso-fecha');
+        const fechaInicial = fechaInicialEl ? fechaInicialEl.value : null;
+        const proximoPago = fechaInicial ? this.calcularProximoPago(fechaInicial, intervaloDias) : null;
 
         return {
             es_recurrente: true,

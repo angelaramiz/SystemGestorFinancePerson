@@ -304,6 +304,99 @@ class StorageManager {
     }
 
     /**
+     * INGRESOS - Actualizar ingreso existente
+     */
+    async updateIngreso(ingresoId, datosActualizados) {
+        try {
+            // Preparar datos actualizados
+            const ingresoActualizado = {
+                ...datosActualizados,
+                id: ingresoId,
+                monto: parseFloat(datosActualizados.monto),
+                updated_at: new Date().toISOString()
+            };
+
+            // Agregar campos de recurrencia si están presentes
+            if (datosActualizados.es_recurrente !== undefined) {
+                ingresoActualizado.es_recurrente = datosActualizados.es_recurrente;
+                
+                if (datosActualizados.frecuencia_recurrencia !== undefined) {
+                    ingresoActualizado.frecuencia_recurrencia = datosActualizados.frecuencia_recurrencia;
+                }
+                
+                if (datosActualizados.dia_recurrencia !== undefined) {
+                    ingresoActualizado.dia_recurrencia = datosActualizados.dia_recurrencia;
+                }
+                
+                if (datosActualizados.fecha_fin_recurrencia !== undefined) {
+                    ingresoActualizado.fecha_fin_recurrencia = datosActualizados.fecha_fin_recurrencia;
+                }
+                
+                if (datosActualizados.proximo_pago !== undefined) {
+                    ingresoActualizado.proximo_pago = datosActualizados.proximo_pago;
+                }
+                
+                if (datosActualizados.numero_secuencia !== undefined) {
+                    ingresoActualizado.numero_secuencia = datosActualizados.numero_secuencia;
+                }
+                
+                ingresoActualizado.activo = datosActualizados.activo !== undefined ? datosActualizados.activo : true;
+            }
+
+            if (this.useSupabase) {
+                try {
+                    const dataForSupabase = this.mapFrontendToSupabase(ingresoActualizado, 'ingreso');
+                    const result = await window.SupabaseConfig.utils.update('ingresos', ingresoId, dataForSupabase);
+                    return this.mapSupabaseToFrontend(result[0], 'ingreso');
+                } catch (supabaseError) {
+                    // Verificar si el error es por campos de recurrencia que no existen
+                    if (supabaseError && supabaseError.code === '42703' && ingresoActualizado.es_recurrente) {
+                        console.warn('⚠️ La BD no está actualizada para ingresos recurrentes. Actualizando sin recurrencia.');
+                        
+                        // Eliminar campos de recurrencia para actualizar el ingreso básico
+                        const dataBasico = {
+                            titulo: ingresoActualizado.descripcion,
+                            cantidad: ingresoActualizado.monto,
+                            categoria: ingresoActualizado.categoria,
+                            fecha: ingresoActualizado.fecha,
+                            descripcion: ingresoActualizado.notas || '',
+                            updated_at: ingresoActualizado.updated_at
+                        };
+                        
+                        const result = await window.SupabaseConfig.utils.update('ingresos', ingresoId, dataBasico);
+                        
+                        // Mostrar notificación al usuario
+                        if (window.gestorApp && window.gestorApp.mostrarNotificacion) {
+                            window.gestorApp.mostrarNotificacion(
+                                '⚠️ El ingreso se actualizó sin recurrencia. Actualice la base de datos con el script supabase-recurrencia-update.sql', 
+                                'warning'
+                            );
+                        }
+                        
+                        return this.mapSupabaseToFrontend(result[0], 'ingreso');
+                    }
+                    
+                    throw supabaseError;
+                }
+            } else {
+                const ingresos = this.getFromLocalStorage('ingresos') || [];
+                const index = ingresos.findIndex(i => i.id === ingresoId);
+                
+                if (index !== -1) {
+                    ingresos[index] = ingresoActualizado;
+                    this.saveToLocalStorage('ingresos', ingresos);
+                    return ingresoActualizado;
+                } else {
+                    throw new Error('Ingreso no encontrado');
+                }
+            }
+        } catch (error) {
+            console.error('Error al actualizar ingreso:', error);
+            throw error;
+        }
+    }
+
+    /**
      * GASTOS - Guardar nuevo gasto o actualizar existente
      */
     async saveGasto(gasto) {

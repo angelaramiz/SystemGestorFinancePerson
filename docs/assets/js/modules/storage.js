@@ -164,12 +164,78 @@ class StorageManager {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
+            
+            // Agregar campos de recurrencia si están presentes
+            if (ingreso.es_recurrente !== undefined) {
+                nuevoIngreso.es_recurrente = ingreso.es_recurrente;
+                
+                // Nuevos campos de recurrencia
+                if (ingreso.frecuencia_recurrencia !== undefined) {
+                    nuevoIngreso.frecuencia_recurrencia = ingreso.frecuencia_recurrencia;
+                } else if (ingreso.frecuencia !== undefined) {
+                    // Compatibilidad con el sistema anterior
+                    nuevoIngreso.frecuencia_recurrencia = ingreso.frecuencia;
+                }
+                
+                if (ingreso.dia_recurrencia !== undefined) {
+                    nuevoIngreso.dia_recurrencia = ingreso.dia_recurrencia;
+                }
+                
+                if (ingreso.fecha_fin_recurrencia !== undefined) {
+                    nuevoIngreso.fecha_fin_recurrencia = ingreso.fecha_fin_recurrencia;
+                } else if (ingreso.fecha_fin !== undefined) {
+                    // Compatibilidad con el sistema anterior
+                    nuevoIngreso.fecha_fin_recurrencia = ingreso.fecha_fin;
+                }
+                
+                nuevoIngreso.activo = ingreso.activo !== undefined ? ingreso.activo : true;
+                nuevoIngreso.proximo_pago = ingreso.proximo_pago;
+                nuevoIngreso.numero_secuencia = ingreso.numero_secuencia || 1;
+                
+                // Campos del sistema anterior para compatibilidad
+                if (ingreso.intervalo_dias !== undefined) {
+                    nuevoIngreso.intervalo_dias = ingreso.intervalo_dias;
+                }
+                
+                if (ingreso.ingreso_padre_id) {
+                    nuevoIngreso.ingreso_padre_id = ingreso.ingreso_padre_id;
+                }
+            }
 
             if (this.useSupabase) {
-                const dataForSupabase = this.mapFrontendToSupabase(nuevoIngreso, 'ingreso');
-                const result = await window.SupabaseConfig.utils.insert('ingresos', dataForSupabase);
-                return this.mapSupabaseToFrontend(result[0], 'ingreso');
-                return result[0];
+                try {
+                    const dataForSupabase = this.mapFrontendToSupabase(nuevoIngreso, 'ingreso');
+                    const result = await window.SupabaseConfig.utils.insert('ingresos', dataForSupabase);
+                    return this.mapSupabaseToFrontend(result[0], 'ingreso');
+                } catch (supabaseError) {
+                    // Verificar si el error es por campos de recurrencia que no existen
+                    if (supabaseError && supabaseError.code === '42703' && ingreso.es_recurrente) {
+                        console.warn('⚠️ La BD no está actualizada para ingresos recurrentes. Guardando sin recurrencia.');
+                        
+                        // Eliminar campos de recurrencia para guardar el ingreso básico
+                        const dataBasico = {
+                            titulo: nuevoIngreso.descripcion,
+                            cantidad: nuevoIngreso.monto,
+                            categoria: nuevoIngreso.categoria,
+                            fecha: nuevoIngreso.fecha,
+                            descripcion: nuevoIngreso.notas || ''
+                        };
+                        
+                        const result = await window.SupabaseConfig.utils.insert('ingresos', dataBasico);
+                        
+                        // Mostrar notificación al usuario
+                        if (window.gestorApp && window.gestorApp.mostrarNotificacion) {
+                            window.gestorApp.mostrarNotificacion(
+                                '⚠️ El ingreso se guardó sin recurrencia. Actualice la base de datos con el script supabase-recurrencia-update.sql', 
+                                'warning'
+                            );
+                        }
+                        
+                        return this.mapSupabaseToFrontend(result[0], 'ingreso');
+                    }
+                    
+                    throw supabaseError;
+                }
             } else {
                 const ingresos = this.getFromLocalStorage('ingresos') || [];
                 ingresos.push(nuevoIngreso);
@@ -188,8 +254,26 @@ class StorageManager {
     async getIngresos(filters = {}) {
         try {
             if (this.useSupabase) {
-                const data = await window.SupabaseConfig.utils.select('ingresos', filters);
-                return data.map(item => this.mapSupabaseToFrontend(item, 'ingreso'));
+                try {
+                    const data = await window.SupabaseConfig.utils.select('ingresos', filters);
+                    return data.map(item => this.mapSupabaseToFrontend(item, 'ingreso'));
+                } catch (supabaseError) {
+                    // Verificar si es un error de estructura de columna
+                    if (supabaseError && supabaseError.code === '42703') {
+                        // Si el error es por un campo de recurrencia, eliminamos esos filtros
+                        // y hacemos una nueva consulta sin ellos
+                        if (filters.es_recurrente !== undefined || filters.activo !== undefined) {
+                            const filtrosBasicos = {...filters};
+                            delete filtrosBasicos.es_recurrente;
+                            delete filtrosBasicos.activo;
+                            
+                            console.warn('⚠️ Eliminando filtros de recurrencia por falta de estructura en la BD');
+                            const dataBasica = await window.SupabaseConfig.utils.select('ingresos', filtrosBasicos);
+                            return dataBasica.map(item => this.mapSupabaseToFrontend(item, 'ingreso'));
+                        }
+                    }
+                    throw supabaseError;
+                }
             } else {
                 let ingresos = this.getFromLocalStorage('ingresos') || [];
                 
@@ -203,6 +287,14 @@ class StorageManager {
                     );
                 }
                 
+                // Filtros de recurrencia
+                if (filters.es_recurrente !== undefined) {
+                    ingresos = ingresos.filter(i => i.es_recurrente === filters.es_recurrente);
+                }
+                if (filters.activo !== undefined) {
+                    ingresos = ingresos.filter(i => i.activo === filters.activo);
+                }
+                
                 return ingresos;
             }
         } catch (error) {
@@ -212,10 +304,106 @@ class StorageManager {
     }
 
     /**
-     * GASTOS - Guardar nuevo gasto
+     * INGRESOS - Actualizar ingreso existente
+     */
+    async updateIngreso(ingresoId, datosActualizados) {
+        try {
+            // Preparar datos actualizados
+            const ingresoActualizado = {
+                ...datosActualizados,
+                id: ingresoId,
+                monto: parseFloat(datosActualizados.monto),
+                updated_at: new Date().toISOString()
+            };
+
+            // Agregar campos de recurrencia si están presentes
+            if (datosActualizados.es_recurrente !== undefined) {
+                ingresoActualizado.es_recurrente = datosActualizados.es_recurrente;
+                
+                if (datosActualizados.frecuencia_recurrencia !== undefined) {
+                    ingresoActualizado.frecuencia_recurrencia = datosActualizados.frecuencia_recurrencia;
+                }
+                
+                if (datosActualizados.dia_recurrencia !== undefined) {
+                    ingresoActualizado.dia_recurrencia = datosActualizados.dia_recurrencia;
+                }
+                
+                if (datosActualizados.fecha_fin_recurrencia !== undefined) {
+                    ingresoActualizado.fecha_fin_recurrencia = datosActualizados.fecha_fin_recurrencia;
+                }
+                
+                if (datosActualizados.proximo_pago !== undefined) {
+                    ingresoActualizado.proximo_pago = datosActualizados.proximo_pago;
+                }
+                
+                if (datosActualizados.numero_secuencia !== undefined) {
+                    ingresoActualizado.numero_secuencia = datosActualizados.numero_secuencia;
+                }
+                
+                ingresoActualizado.activo = datosActualizados.activo !== undefined ? datosActualizados.activo : true;
+            }
+
+            if (this.useSupabase) {
+                try {
+                    const dataForSupabase = this.mapFrontendToSupabase(ingresoActualizado, 'ingreso');
+                    const result = await window.SupabaseConfig.utils.update('ingresos', ingresoId, dataForSupabase);
+                    return this.mapSupabaseToFrontend(result[0], 'ingreso');
+                } catch (supabaseError) {
+                    // Verificar si el error es por campos de recurrencia que no existen
+                    if (supabaseError && supabaseError.code === '42703' && ingresoActualizado.es_recurrente) {
+                        console.warn('⚠️ La BD no está actualizada para ingresos recurrentes. Actualizando sin recurrencia.');
+                        
+                        // Eliminar campos de recurrencia para actualizar el ingreso básico
+                        const dataBasico = {
+                            titulo: ingresoActualizado.descripcion,
+                            cantidad: ingresoActualizado.monto,
+                            categoria: ingresoActualizado.categoria,
+                            fecha: ingresoActualizado.fecha,
+                            descripcion: ingresoActualizado.notas || '',
+                            updated_at: ingresoActualizado.updated_at
+                        };
+                        
+                        const result = await window.SupabaseConfig.utils.update('ingresos', ingresoId, dataBasico);
+                        
+                        // Mostrar notificación al usuario
+                        if (window.gestorApp && window.gestorApp.mostrarNotificacion) {
+                            window.gestorApp.mostrarNotificacion(
+                                '⚠️ El ingreso se actualizó sin recurrencia. Actualice la base de datos con el script supabase-recurrencia-update.sql', 
+                                'warning'
+                            );
+                        }
+                        
+                        return this.mapSupabaseToFrontend(result[0], 'ingreso');
+                    }
+                    
+                    throw supabaseError;
+                }
+            } else {
+                const ingresos = this.getFromLocalStorage('ingresos') || [];
+                const index = ingresos.findIndex(i => i.id === ingresoId);
+                
+                if (index !== -1) {
+                    ingresos[index] = ingresoActualizado;
+                    this.saveToLocalStorage('ingresos', ingresos);
+                    return ingresoActualizado;
+                } else {
+                    throw new Error('Ingreso no encontrado');
+                }
+            }
+        } catch (error) {
+            console.error('Error al actualizar ingreso:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * GASTOS - Guardar nuevo gasto o actualizar existente
      */
     async saveGasto(gasto) {
         try {
+            // Verificar si ya existe (tiene ID y existe en la BD)
+            const esActualizacion = gasto.id ? true : false;
+            
             const nuevoGasto = {
                 id: gasto.id || this.generateId(),
                 tipo: gasto.tipo,
@@ -224,19 +412,112 @@ class StorageManager {
                 fecha: gasto.fecha,
                 categoria: gasto.categoria || 'Otros',
                 notas: gasto.notas || '',
-                estado: 'pendiente',
-                created_at: new Date().toISOString(),
+                estado: gasto.estado || 'pendiente',
+                created_at: gasto.created_at || new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
+            
+            // Agregar campos de recurrencia si están presentes
+            if (gasto.es_recurrente !== undefined) {
+                nuevoGasto.es_recurrente = gasto.es_recurrente;
+                
+                // Nuevos campos de recurrencia
+                if (gasto.frecuencia_recurrencia !== undefined) {
+                    nuevoGasto.frecuencia_recurrencia = gasto.frecuencia_recurrencia;
+                } else if (gasto.frecuencia !== undefined) {
+                    // Compatibilidad con el sistema anterior
+                    nuevoGasto.frecuencia_recurrencia = gasto.frecuencia;
+                }
+                
+                if (gasto.dia_recurrencia !== undefined) {
+                    nuevoGasto.dia_recurrencia = gasto.dia_recurrencia;
+                }
+                
+                if (gasto.fecha_fin_recurrencia !== undefined) {
+                    nuevoGasto.fecha_fin_recurrencia = gasto.fecha_fin_recurrencia;
+                } else if (gasto.fecha_fin !== undefined) {
+                    // Compatibilidad con el sistema anterior
+                    nuevoGasto.fecha_fin_recurrencia = gasto.fecha_fin;
+                }
+                
+                nuevoGasto.activo = gasto.activo !== undefined ? gasto.activo : true;
+                nuevoGasto.proximo_pago = gasto.proximo_pago;
+                nuevoGasto.numero_secuencia = gasto.numero_secuencia || 1;
+                
+                // Campos del sistema anterior para compatibilidad
+                if (gasto.intervalo_dias !== undefined) {
+                    nuevoGasto.intervalo_dias = gasto.intervalo_dias;
+                }
+                
+                if (gasto.gasto_padre_id) {
+                    nuevoGasto.gasto_padre_id = gasto.gasto_padre_id;
+                }
+            }
 
             if (this.useSupabase) {
-                const dataForSupabase = this.mapFrontendToSupabase(nuevoGasto, 'gasto');
-                const result = await window.SupabaseConfig.utils.insert('gastos', dataForSupabase);
-                return this.mapSupabaseToFrontend(result[0], 'gasto');
-                return result[0];
+                try {
+                    const dataForSupabase = this.mapFrontendToSupabase(nuevoGasto, 'gasto');
+                    let result;
+                    
+                    // Si es actualización, usar update en lugar de insert
+                    if (esActualizacion) {
+                        result = await window.SupabaseConfig.utils.update('gastos', nuevoGasto.id, dataForSupabase);
+                        console.log('✅ Gasto actualizado en Supabase:', nuevoGasto.id);
+                    } else {
+                        result = await window.SupabaseConfig.utils.insert('gastos', dataForSupabase);
+                        console.log('✅ Nuevo gasto insertado en Supabase');
+                    }
+                    
+                    return this.mapSupabaseToFrontend(result[0], 'gasto');
+                } catch (supabaseError) {
+                    // Verificar si el error es por campos de recurrencia que no existen
+                    if (supabaseError && supabaseError.code === '42703' && gasto.es_recurrente) {
+                        console.warn('⚠️ La BD no está actualizada para gastos recurrentes. Guardando sin recurrencia.');
+                        
+                        // Eliminar campos de recurrencia para guardar el gasto básico
+                        const dataBasico = {
+                            titulo: nuevoGasto.descripcion,
+                            cantidad: nuevoGasto.monto,
+                            categoria: nuevoGasto.categoria,
+                            fecha: nuevoGasto.fecha,
+                            descripcion: nuevoGasto.notas || ''
+                        };
+                        
+                        const result = await window.SupabaseConfig.utils.insert('gastos', dataBasico);
+                        
+                        // Mostrar notificación al usuario
+                        if (window.gestorApp && window.gestorApp.mostrarNotificacion) {
+                            window.gestorApp.mostrarNotificacion(
+                                '⚠️ El gasto se guardó sin recurrencia. Actualice la base de datos con el script supabase-recurrencia-update.sql', 
+                                'warning'
+                            );
+                        }
+                        
+                        return this.mapSupabaseToFrontend(result[0], 'gasto');
+                    }
+                    
+                    throw supabaseError;
+                }
             } else {
+                // Para localStorage, actualizar si existe o agregar si es nuevo
                 const gastos = this.getFromLocalStorage('gastos') || [];
-                gastos.push(nuevoGasto);
+                
+                if (esActualizacion) {
+                    // Actualizar el existente
+                    const index = gastos.findIndex(g => g.id === nuevoGasto.id);
+                    if (index !== -1) {
+                        gastos[index] = nuevoGasto;
+                        console.log('✅ Gasto actualizado en localStorage:', nuevoGasto.id);
+                    } else {
+                        gastos.push(nuevoGasto);
+                        console.log('⚠️ No se encontró el gasto para actualizar, agregado como nuevo');
+                    }
+                } else {
+                    // Agregar nuevo
+                    gastos.push(nuevoGasto);
+                    console.log('✅ Nuevo gasto agregado a localStorage');
+                }
+                
                 this.saveToLocalStorage('gastos', gastos);
                 return nuevoGasto;
             }
@@ -252,8 +533,26 @@ class StorageManager {
     async getGastos(filters = {}) {
         try {
             if (this.useSupabase) {
-                const data = await window.SupabaseConfig.utils.select('gastos', filters);
-                return data.map(item => this.mapSupabaseToFrontend(item, 'gasto'));
+                try {
+                    const data = await window.SupabaseConfig.utils.select('gastos', filters);
+                    return data.map(item => this.mapSupabaseToFrontend(item, 'gasto'));
+                } catch (supabaseError) {
+                    // Verificar si es un error de estructura de columna
+                    if (supabaseError && supabaseError.code === '42703') {
+                        // Si el error es por un campo de recurrencia, eliminamos esos filtros
+                        // y hacemos una nueva consulta sin ellos
+                        if (filters.es_recurrente !== undefined || filters.activo !== undefined) {
+                            const filtrosBasicos = {...filters};
+                            delete filtrosBasicos.es_recurrente;
+                            delete filtrosBasicos.activo;
+                            
+                            console.warn('⚠️ Eliminando filtros de recurrencia por falta de estructura en la BD');
+                            const dataBasica = await window.SupabaseConfig.utils.select('gastos', filtrosBasicos);
+                            return dataBasica.map(item => this.mapSupabaseToFrontend(item, 'gasto'));
+                        }
+                    }
+                    throw supabaseError;
+                }
             } else {
                 let gastos = this.getFromLocalStorage('gastos') || [];
                 
@@ -265,6 +564,14 @@ class StorageManager {
                     gastos = gastos.filter(g => 
                         g.fecha >= filters.fecha_desde && g.fecha <= filters.fecha_hasta
                     );
+                }
+                
+                // Filtros de recurrencia (si existen)
+                if (filters.es_recurrente !== undefined) {
+                    gastos = gastos.filter(g => g.es_recurrente === filters.es_recurrente);
+                }
+                if (filters.activo !== undefined) {
+                    gastos = gastos.filter(g => g.activo === filters.activo);
                 }
                 
                 return gastos;
@@ -391,33 +698,37 @@ class StorageManager {
      * Mapear datos de Supabase al formato del frontend
      */
     mapSupabaseToFrontend(item, type) {
-        if (type === 'ingreso') {
-            return {
-                id: item.id,
-                tipo: item.titulo || '', // Mapear titulo a tipo para compatibilidad
-                descripcion: item.titulo || '',
-                monto: item.cantidad || 0,
-                categoria: item.categoria || '',
-                fecha: item.fecha || '',
-                notas: item.descripcion || '',
-                created_at: item.created_at,
-                updated_at: item.updated_at
-            };
-        } else if (type === 'gasto') {
-            return {
-                id: item.id,
-                tipo: item.titulo || '', // Mapear titulo a tipo para compatibilidad
-                descripcion: item.titulo || '',
-                monto: item.cantidad || 0,
-                categoria: item.categoria || '',
-                fecha: item.fecha || '',
-                notas: item.descripcion || '',
-                estado: 'pendiente',
-                created_at: item.created_at,
-                updated_at: item.updated_at
-            };
+        const baseData = {
+            id: item.id,
+            tipo: item.titulo || '', // Mapear titulo a tipo para compatibilidad
+            descripcion: item.titulo || '',
+            monto: item.cantidad || 0,
+            categoria: item.categoria || '',
+            fecha: item.fecha || '',
+            notas: item.descripcion || '',
+            estado: item.estado || 'pendiente', // Mapear el estado real
+            created_at: item.created_at,
+            updated_at: item.updated_at
+        };
+
+        // Agregar campos de recurrencia si existen
+        if (item.es_recurrente !== undefined) {
+            baseData.es_recurrente = item.es_recurrente;
+            baseData.frecuencia = item.frecuencia;
+            baseData.intervalo_dias = item.intervalo_dias;
+            baseData.fecha_fin = item.fecha_fin;
+            baseData.activo = item.activo;
+            baseData.proximo_pago = item.proximo_pago;
+            baseData.numero_secuencia = item.numero_secuencia;
+            
+            if (type === 'ingreso' && item.ingreso_padre_id) {
+                baseData.ingreso_padre_id = item.ingreso_padre_id;
+            } else if (type === 'gasto' && item.gasto_padre_id) {
+                baseData.gasto_padre_id = item.gasto_padre_id;
+            }
         }
-        return item;
+
+        return baseData;
     }
 
     /**
@@ -429,10 +740,35 @@ class StorageManager {
             cantidad: parseFloat(item.monto || item.cantidad || 0),
             categoria: item.categoria || '',
             fecha: item.fecha || '',
-            descripcion: item.notas || item.descripcion || ''
+            descripcion: item.notas || item.descripcion || '',
+            estado: item.estado || 'pendiente'
         };
         
+        // Agregar campos de recurrencia si existen
+        if (item.es_recurrente !== undefined) {
+            baseData.es_recurrente = item.es_recurrente;
+            baseData.frecuencia = item.frecuencia || null;
+            baseData.intervalo_dias = item.intervalo_dias || null;
+            baseData.fecha_fin = item.fecha_fin || null;
+            baseData.activo = item.activo !== undefined ? item.activo : true;
+            baseData.proximo_pago = item.proximo_pago || null;
+            baseData.numero_secuencia = item.numero_secuencia || 1;
+            
+            if (type === 'ingreso' && item.ingreso_padre_id) {
+                baseData.ingreso_padre_id = item.ingreso_padre_id;
+            } else if (type === 'gasto' && item.gasto_padre_id) {
+                baseData.gasto_padre_id = item.gasto_padre_id;
+            }
+        }
+        
         return baseData;
+    }
+
+    /**
+     * Añadir un nuevo ingreso (usado para recurrencia)
+     */
+    async addIngreso(ingreso) {
+        return await this.saveIngreso(ingreso);
     }
 }
 

@@ -60,7 +60,10 @@ class ModuloConsultas {
                 if (desde && hasta) {
                     await this.ejecutarConsulta(desde, hasta, tipo);
                 } else {
-                    alert('Por favor, selecciona un rango de fechas válido');
+                    if (!fechaDesde || !fechaHasta || new Date(fechaDesde) > new Date(fechaHasta)) {
+                await window.Alertas.advertencia('Fechas inválidas', 'Por favor, selecciona un rango de fechas válido');
+                return;
+            }
                 }
             });
         }
@@ -123,7 +126,7 @@ class ModuloConsultas {
         } catch (error) {
             console.error('Error en consulta:', error);
             this.mostrarLoading(false);
-            alert('Error al ejecutar la consulta');
+            await window.Alertas.error('Error en la consulta', 'No se pudo ejecutar la consulta');
         }
     }
 
@@ -371,7 +374,7 @@ class ModuloConsultas {
             console.log('✅ Datos exportados correctamente');
         } catch (error) {
             console.error('Error al exportar datos:', error);
-            alert('Error al exportar los datos');
+            await window.Alertas.error('Error al exportar', 'No se pudieron exportar los datos');
         }
     }
 

@@ -18,6 +18,22 @@ class GestorModales {
         this.cargarCategorias();
     }
     
+    /**
+     * Convertir frecuencia de recurrencia a días
+     */
+    calcularIntervaloDias(frecuencia) {
+        const intervalos = {
+            'semanal': 7,
+            'quincenal': 15,
+            'mensual': 30,
+            'bimestral': 60,
+            'trimestral': 90,
+            'semestral': 180,
+            'anual': 365
+        };
+        return intervalos[frecuencia] || 30; // Por defecto mensual
+    }
+
     configurarRecurrencia() {
         // Configurar paneles de recurrencia para ingresos
         const checkIngresoRecurrente = document.getElementById('ingreso-es-recurrente');
@@ -95,11 +111,60 @@ class GestorModales {
                 await this.manejarEnvioGasto(formGasto);
             });
         }
+
+        // Configurar eventos para botones de abrir modal
+        const btnAbrirModalIngreso = document.getElementById('add-ingreso-btn');
+        if (btnAbrirModalIngreso) {
+            btnAbrirModalIngreso.addEventListener('click', () => {
+                this.abrirModalNuevoIngreso();
+            });
+        }
+    }
+
+    abrirModalNuevoIngreso() {
+        const modal = document.getElementById('modal-ingreso');
+        const form = document.getElementById('form-ingreso');
+        
+        if (modal && form) {
+            // Limpiar formulario
+            form.reset();
+            
+            // Limpiar campo ID oculto
+            document.getElementById('ingreso-id').value = '';
+            
+            // Establecer fecha actual por defecto
+            const fechaInput = document.getElementById('ingreso-fecha');
+            if (fechaInput) {
+                fechaInput.value = new Date().toISOString().split('T')[0];
+            }
+            
+            // Cambiar título del modal
+            const modalTitle = document.querySelector('#modal-ingreso-title');
+            if (modalTitle) {
+                modalTitle.textContent = '➕ Nuevo Ingreso';
+            }
+            
+            // Ocultar campos de recurrencia
+            const panelRecurrencia = document.querySelector('.panel-recurrencia');
+            if (panelRecurrencia) {
+                panelRecurrencia.classList.remove('activo');
+            }
+            
+            // Desmarcar checkbox de recurrencia
+            const checkboxRecurrencia = document.getElementById('ingreso-es-recurrente');
+            if (checkboxRecurrencia) {
+                checkboxRecurrencia.checked = false;
+            }
+            
+            // Mostrar modal
+            this.mostrarModal(modal);
+        }
     }
 
     async manejarEnvioIngreso(form) {
         try {
             const formData = new FormData(form);
+            const ingresoId = document.getElementById('ingreso-id').value;
             const ingreso = {
                 tipo: formData.get('ingreso-tipo') || document.getElementById('ingreso-tipo').value,
                 descripcion: formData.get('ingreso-descripcion') || document.getElementById('ingreso-descripcion').value,
@@ -109,14 +174,19 @@ class GestorModales {
                 notas: ''
             };
 
+            // Si estamos editando, incluir el ID
+            if (ingresoId) {
+                ingreso.id = ingresoId;
+            }
+
             // Validaciones
             if (!ingreso.tipo || !ingreso.descripcion || !ingreso.monto || !ingreso.fecha) {
-                alert('Por favor, completa todos los campos obligatorios');
+                await window.Alertas.validacionFormulario(['Por favor, completa todos los campos obligatorios']);
                 return;
             }
 
             if (parseFloat(ingreso.monto) <= 0) {
-                alert('El monto debe ser mayor que 0');
+                await window.Alertas.advertencia('Monto inválido', 'El monto debe ser mayor que 0');
                 return;
             }
 
@@ -130,16 +200,18 @@ class GestorModales {
                 ingreso.fecha_fin_recurrencia = document.getElementById('ingreso-fecha-fin-recurrencia').value || null;
                 ingreso.activo = true;
                 
-                // Si tenemos GestorRecurrencia disponible, usar para calcular próximo pago
-                if (window.GestorRecurrencia) {
-                    const proximoPago = window.GestorRecurrencia.calcularProximoPago(
+                // Si tenemos RecurrenceManager disponible, usar para calcular próximo pago
+                if (window.RecurrenceManager) {
+                    // Calcular intervalo de días basado en la frecuencia
+                    const intervaloDias = this.calcularIntervaloDias(ingreso.frecuencia_recurrencia);
+                    const proximoPago = window.RecurrenceManager.calcularProximoPago(
                         ingreso.fecha,
-                        ingreso.frecuencia_recurrencia,
-                        ingreso.dia_recurrencia
+                        intervaloDias
                     );
                     ingreso.proximo_pago = proximoPago;
                     ingreso.numero_secuencia = 1;
                     ingreso.ingreso_padre_id = null;
+                    ingreso.intervalo_dias = intervaloDias;
                 }
             }
 
@@ -152,12 +224,23 @@ class GestorModales {
             // Mostrar loading
             this.mostrarLoading(form, true);
 
-            // Guardar en storage
-            const nuevoIngreso = await this.storage.saveIngreso(ingreso);
+            // Guardar en storage - usar updateIngreso si estamos editando
+            let resultado;
+            if (ingresoId) {
+                resultado = await this.storage.updateIngreso(ingresoId, ingreso);
+                await window.Alertas.exito('Ingreso actualizado', 'Los cambios se guardaron correctamente');
+            } else {
+                resultado = await this.storage.saveIngreso(ingreso);
+                await window.Alertas.exito('Ingreso guardado', 'El ingreso se guardó correctamente');
+            }
 
             // Notificar a otros componentes
             if (window.CalendarioIngresos) {
-                await window.CalendarioIngresos.onIngresoGuardado(nuevoIngreso);
+                if (ingresoId) {
+                    await window.CalendarioIngresos.refrescarCalendario();
+                } else {
+                    await window.CalendarioIngresos.onIngresoGuardado(resultado);
+                }
             }
 
             // Actualizar consultas si está activa esa pestaña
@@ -170,12 +253,12 @@ class GestorModales {
             this.cerrarModal(modal);
             form.reset();
 
-            this.mostrarNotificacion('✅ Ingreso guardado correctamente', 'success');
+            await window.Alertas.exito('Ingreso guardado', 'El ingreso se ha guardado correctamente');
             console.log('✅ Ingreso guardado:', nuevoIngreso);
 
         } catch (error) {
             console.error('Error al guardar ingreso:', error);
-            this.mostrarNotificacion('❌ Error al guardar el ingreso', 'error');
+            await window.Alertas.error('Error al guardar', 'No se pudo guardar el ingreso');
         } finally {
             this.mostrarLoading(form, false);
         }
@@ -196,12 +279,12 @@ class GestorModales {
 
             // Validaciones
             if (!gasto.tipo || !gasto.descripcion || !gasto.monto || !gasto.fecha) {
-                alert('Por favor, completa todos los campos obligatorios');
+                await window.Alertas.validacionFormulario(['Por favor, completa todos los campos obligatorios']);
                 return;
             }
 
             if (parseFloat(gasto.monto) <= 0) {
-                alert('El monto debe ser mayor que 0');
+                await window.Alertas.advertencia('Monto inválido', 'El monto debe ser mayor que 0');
                 return;
             }
             
@@ -215,16 +298,17 @@ class GestorModales {
                 gasto.fecha_fin_recurrencia = document.getElementById('gasto-fecha-fin-recurrencia').value || null;
                 gasto.activo = true;
                 
-                // Si tenemos GestorRecurrencia disponible, usar para calcular próximo pago
-                if (window.GestorRecurrencia) {
-                    const proximoPago = window.GestorRecurrencia.calcularProximoPago(
+                // Si tenemos RecurrenceManager disponible, usar para calcular próximo pago
+                if (window.RecurrenceManager) {
+                    const intervaloDias = this.calcularIntervaloDias(gasto.frecuencia_recurrencia);
+                    const proximoPago = window.RecurrenceManager.calcularProximoPago(
                         gasto.fecha,
-                        gasto.frecuencia_recurrencia,
-                        gasto.dia_recurrencia
+                        intervaloDias
                     );
                     gasto.proximo_pago = proximoPago;
                     gasto.numero_secuencia = 1;
                     gasto.gasto_padre_id = null;
+                    gasto.intervalo_dias = intervaloDias;
                 }
             }
 
@@ -249,12 +333,12 @@ class GestorModales {
             this.cerrarModal(modal);
             form.reset();
 
-            this.mostrarNotificacion('✅ Gasto guardado correctamente', 'success');
+            await window.Alertas.exito('Gasto guardado', 'El gasto se ha guardado correctamente');
             console.log('✅ Gasto guardado:', nuevoGasto);
 
         } catch (error) {
             console.error('Error al guardar gasto:', error);
-            this.mostrarNotificacion('❌ Error al guardar el gasto', 'error');
+            await window.Alertas.error('Error al guardar', 'No se pudo guardar el gasto');
         } finally {
             this.mostrarLoading(form, false);
         }
@@ -289,8 +373,14 @@ class GestorModales {
                 }
                 
                 // Limpiar campos de recurrencia usando RecurrenceManager
-                if (window.RecurrenceManager && modal.id === 'modal-ingreso') {
-                    window.RecurrenceManager.limpiarCamposRecurrencia();
+                if (window.RecurrenceManager) {
+                    try {
+                        // Detectar tipo basado en el ID del modal
+                        const tipo = modal.id.includes('ingreso') ? 'ingreso' : 'gasto';
+                        window.RecurrenceManager.limpiarCamposRecurrencia(tipo);
+                    } catch (error) {
+                        console.warn('Error al limpiar campos de recurrencia:', error);
+                    }
                 }
             }
         }

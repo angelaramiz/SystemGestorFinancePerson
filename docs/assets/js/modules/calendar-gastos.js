@@ -10,7 +10,8 @@ class CalendarioGastos {
         this.currentFilter = 'todos';
         this.gastos = [];
         
-        this.init();
+        // No iniciar automáticamente, se hará desde app.js
+        console.log('🚀 CalendarioGastos instanciado, esperando inicialización externa...');
     }
 
     async init() {
@@ -219,7 +220,16 @@ class CalendarioGastos {
         });
     }
 
-    mostrarModal(titulo, contenido) {
+    mostrarModal(tituloOElemento, contenido) {
+        // Si es un elemento DOM, mostrar ese modal
+        if (tituloOElemento instanceof HTMLElement) {
+            tituloOElemento.classList.add('active');
+            return;
+        }
+        
+        // Si son strings, crear modal temporal
+        const titulo = tituloOElemento;
+        
         // Crear modal temporal para mostrar detalles
         const existingModal = document.querySelector('.temp-modal');
         if (existingModal) {
@@ -249,10 +259,14 @@ class CalendarioGastos {
             const gasto = this.gastos.find(g => g.id === id);
             if (!gasto) return;
 
-            // Actualizar estado (aquí necesitarías implementar update en storage)
+            // Actualizar estado
             gasto.estado = 'pagado';
+            gasto.updated_at = new Date().toISOString();
             
-            // Por ahora, simular actualización recargando datos
+            // Guardar en almacenamiento
+            await this.storage.saveGasto(gasto);
+            
+            // Refrescar calendario
             await this.refrescarCalendario();
             
             // Cerrar modal temporal
@@ -262,18 +276,53 @@ class CalendarioGastos {
             console.log('✅ Gasto marcado como pagado');
         } catch (error) {
             console.error('Error al marcar gasto como pagado:', error);
-            alert('Error al actualizar el gasto');
+            await window.Alertas.error('Error al actualizar', 'No se pudo actualizar el gasto');
         }
     }
 
     async editarGasto(id) {
-        // Implementar edición de gasto
-        console.log('Editar gasto:', id);
-        // TODO: Abrir modal de edición con datos prellenados
+        try {
+            console.log('Editar gasto:', id);
+            
+            // Buscar el gasto en la lista
+            const gasto = this.gastos.find(g => g.id === id);
+            if (!gasto) {
+                console.error('No se encontró el gasto con ID:', id);
+                return;
+            }
+            
+            // Abrir modal de edición con datos prellenados
+            const modal = document.getElementById('modal-gasto');
+            if (!modal) return;
+            
+            // Prellenar formulario
+            const form = document.getElementById('form-gasto');
+            if (form) {
+                // Llenar campos
+                form.elements['gasto-id'].value = gasto.id;
+                form.elements['gasto-tipo'].value = gasto.tipo;
+                form.elements['gasto-descripcion'].value = gasto.descripcion;
+                form.elements['gasto-monto'].value = gasto.monto;
+                form.elements['gasto-fecha'].value = gasto.fecha;
+                form.elements['gasto-categoria'].value = gasto.categoria;
+                form.elements['gasto-notas'].value = gasto.notas || '';
+                
+                // Mostrar modal
+                this.mostrarModal(modal);
+                
+                // Cerrar modal temporal
+                const tempModal = document.querySelector('.temp-modal');
+                if (tempModal) tempModal.remove();
+            }
+        } catch (error) {
+            console.error('Error al editar gasto:', error);
+            await window.Alertas.error('Error al editar', 'No se pudo abrir el formulario de edición');
+        }
     }
 
     async eliminarGasto(id) {
-        if (confirm('¿Estás seguro de que quieres eliminar este gasto?')) {
+        const confirmacion = await window.Alertas.confirmarEliminacion('gasto');
+        if (confirmacion.isConfirmed) {
             try {
                 await this.storage.deleteItem('gasto', id);
                 await this.refrescarCalendario();
@@ -285,7 +334,7 @@ class CalendarioGastos {
                 console.log('✅ Gasto eliminado');
             } catch (error) {
                 console.error('Error al eliminar gasto:', error);
-                alert('Error al eliminar el gasto');
+                await window.Alertas.error('Error al eliminar', 'No se pudo eliminar el gasto');
             }
         }
     }
@@ -346,5 +395,4 @@ class CalendarioGastos {
     }
 }
 
-// Crear instancia global después de que se inicialice el storage
-window.CalendarioGastos = null;
+// La instancia global se creará en app.js

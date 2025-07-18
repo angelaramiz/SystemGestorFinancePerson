@@ -505,10 +505,14 @@ class GestorFinanciero {
     /**
      * Resetear datos (para herramientas de desarrollador)
      */
-    resetearDatos() {
-        if (confirm('⚠️ ¿Estás seguro? Esto eliminará todos los datos locales y recargará la aplicación.')) {
+    async resetearDatos() {
+        const confirmacion = await window.Alertas.confirmar(
+            '⚠️ Resetear aplicación',
+            'Esto eliminará todos los datos locales y recargará la aplicación. ¿Estás seguro?'
+        );
+        if (confirmacion.isConfirmed) {
             localStorage.clear();
-            this.mostrarNotificacion('🗑️ Datos limpiados. Recargando...', 'info');
+            await window.Alertas.info('Datos limpiados', 'Recargando aplicación...');
             setTimeout(() => location.reload(), 1500);
         }
     }

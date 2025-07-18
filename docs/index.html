@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💰 Gestor Financiero Personal - México 🇲🇽</title>
-    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-    <link rel="alternate icon" type="image/png" href="assets/favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="src/assets/favicon.svg">
+    <link rel="alternate icon" type="image/png" href="src/assets/favicon.svg">
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- SweetAlert2 para alertas modernas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- FullCalendar para los calendarios -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -17,7 +20,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Estilos -->
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="src/css/main.css">
+    <link rel="stylesheet" href="src/css/ventanas.css">
+    <link rel="stylesheet" href="src/css/alertas.css">
+    <link rel="stylesheet" href="css/supabase-update.css">
+    <link rel="stylesheet" href="css/recurrencia.css">
     
     <!-- PWA Meta tags -->
     <meta name="theme-color" content="#2563eb">
@@ -39,7 +46,7 @@
         <header class="app-header">
             <div class="header-content">
                 <div class="app-title-container">
-                    <img src="assets/logo-small.svg" alt="Logo Finanzas México" class="app-logo">
+                    <img src="src/assets/logo-small.svg" alt="Logo Finanzas México" class="app-logo">
                     <h1 class="app-title">
                         <span class="title-icon">🇲🇽</span>
                         Gestor Financiero Personal - México
@@ -211,6 +218,8 @@
                 <button class="modal-close">&times;</button>
             </div>
             <form id="form-ingreso" class="modal-form">
+                <!-- Campo oculto para ID (edición) -->
+                <input type="hidden" id="ingreso-id" name="ingreso-id" value="">
                 <div class="form-group">
                     <label for="ingreso-tipo">Tipo de Ingreso:</label>
                     <select id="ingreso-tipo" class="form-select" required>
@@ -249,6 +258,44 @@
                         <option value="Otros Ingresos">📋 Otros Ingresos (Varios)</option>
                     </select>
                 </div>
+                
+                <!-- Panel de Recurrencia para Ingresos -->
+                <div class="panel-recurrencia">
+                    <h4>🔄 Configuración de Recurrencia</h4>
+                    <div class="form-check">
+                        <input type="checkbox" id="ingreso-es-recurrente" class="form-check-input">
+                        <label for="ingreso-es-recurrente" class="form-check-label">Este ingreso se repite periódicamente</label>
+                    </div>
+                    
+                    <div class="campos-recurrencia">
+                        <div class="row-recurrencia">
+                            <div class="col">
+                                <label for="ingreso-frecuencia-recurrencia">Frecuencia:</label>
+                                <select id="ingreso-frecuencia-recurrencia" class="form-select">
+                                    <option value="semanal">Semanal</option>
+                                    <option value="quincenal">Quincenal</option>
+                                    <option value="mensual" selected>Mensual</option>
+                                    <option value="bimestral">Bimestral</option>
+                                    <option value="trimestral">Trimestral</option>
+                                    <option value="semestral">Semestral</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label for="ingreso-dia-recurrencia">Día:</label>
+                                <input type="text" id="ingreso-dia-recurrencia" class="form-input" placeholder="1" value="1">
+                                <small class="form-help">Día del mes o semana</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ingreso-fecha-fin-recurrencia">Fecha límite (opcional):</label>
+                            <input type="date" id="ingreso-fecha-fin-recurrencia" class="form-input">
+                            <small class="form-help">Dejar en blanco si no tiene fecha de finalización</small>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -265,6 +312,8 @@
                 <button class="modal-close">&times;</button>
             </div>
             <form id="form-gasto" class="modal-form">
+                <!-- Campo oculto para ID (edición) -->
+                <input type="hidden" id="gasto-id" name="gasto-id" value="">
                 <div class="form-group">
                     <label for="gasto-tipo">Tipo de Gasto:</label>
                     <select id="gasto-tipo" class="form-select" required>
@@ -312,6 +361,49 @@
                         <option value="Otros Gastos">📝 Otros Gastos (Varios)</option>
                     </select>
                 </div>
+                <!-- Campo para notas adicionales -->
+                <div class="form-group">
+                    <label for="gasto-notas">Notas adicionales:</label>
+                    <textarea id="gasto-notas" class="form-input" rows="2"></textarea>
+                </div>
+                
+                <!-- Panel de Recurrencia para Gastos -->
+                <div class="panel-recurrencia">
+                    <h4>🔄 Configuración de Recurrencia</h4>
+                    <div class="form-check">
+                        <input type="checkbox" id="gasto-es-recurrente" class="form-check-input">
+                        <label for="gasto-es-recurrente" class="form-check-label">Este gasto se repite periódicamente</label>
+                    </div>
+                    
+                    <div class="campos-recurrencia">
+                        <div class="row-recurrencia">
+                            <div class="col">
+                                <label for="gasto-frecuencia-recurrencia">Frecuencia:</label>
+                                <select id="gasto-frecuencia-recurrencia" class="form-select">
+                                    <option value="semanal">Semanal</option>
+                                    <option value="quincenal">Quincenal</option>
+                                    <option value="mensual" selected>Mensual</option>
+                                    <option value="bimestral">Bimestral</option>
+                                    <option value="trimestral">Trimestral</option>
+                                    <option value="semestral">Semestral</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <label for="gasto-dia-recurrencia">Día:</label>
+                                <input type="text" id="gasto-dia-recurrencia" class="form-input" placeholder="1" value="1">
+                                <small class="form-help">Día del mes o semana</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gasto-fecha-fin-recurrencia">Fecha límite (opcional):</label>
+                            <input type="date" id="gasto-fecha-fin-recurrencia" class="form-input">
+                            <small class="form-help">Dejar en blanco si no tiene fecha de finalización</small>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -325,7 +417,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="config-header-content">
-                    <img src="assets/logo.svg" alt="Logo Finanzas México" class="config-logo">
+                    <img src="src/assets/logo.svg" alt="Logo Finanzas México" class="config-logo">
                     <h2>⚙️ Configuración - México 🇲🇽</h2>
                 </div>
                 <span class="modal-close">&times;</span>
@@ -442,15 +534,18 @@
     </div>
 
     <!-- Scripts -->
-    <script src="assets/js/utils/logger.js"></script>
-    <script src="assets/js/utils/configuracion-mexico.js"></script>
-    <script src="assets/js/modules/supabase-config.js"></script>
-    <script src="assets/js/modules/storage.js"></script>
-    <script src="assets/js/modules/calendar-ingresos.js"></script>
-    <script src="assets/js/modules/calendar-gastos.js"></script>
-    <script src="assets/js/modules/consultas.js"></script>
-    <script src="assets/js/modules/modals.js"></script>
-    <script src="assets/js/app.js"></script>
+    <script src="src/js/utils/logger.js"></script>
+    <script src="src/js/utils/configuracion-mexico.js"></script>
+    <script src="src/js/utils/alertas.js"></script>
+    <script src="src/js/modules/supabase-config.js"></script>
+    <script src="src/js/modules/storage.js"></script>
+    <script src="js/utils/recurrencia.js"></script>
+    <script src="src/js/modules/calendar-ingresos.js"></script>
+    <script src="src/js/modules/calendar-gastos.js"></script>
+    <script src="src/js/modules/consultas.js"></script>
+    <script src="src/js/modules/modals.js"></script>
+    <script src="src/js/modules/recurrence.js"></script>
+    <script src="src/js/app.js"></script>
     
     <!-- Registro del Service Worker -->
     <script>

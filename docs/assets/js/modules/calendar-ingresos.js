@@ -10,7 +10,8 @@ class CalendarioIngresos {
         this.currentFilter = 'todos';
         this.ingresos = [];
         
-        this.init();
+        // No iniciar automáticamente, se hará desde app.js
+        console.log('🚀 CalendarioIngresos instanciado, esperando inicialización externa...');
     }
 
     async init() {
@@ -191,7 +192,16 @@ class CalendarioIngresos {
         });
     }
 
-    mostrarModal(titulo, contenido) {
+    mostrarModal(tituloOElemento, contenido) {
+        // Si es un elemento DOM, mostrar ese modal
+        if (tituloOElemento instanceof HTMLElement) {
+            tituloOElemento.classList.add('active');
+            return;
+        }
+        
+        // Si son strings, crear modal temporal
+        const titulo = tituloOElemento;
+        
         // Crear modal temporal para mostrar detalles
         const existingModal = document.querySelector('.temp-modal');
         if (existingModal) {
@@ -216,13 +226,79 @@ class CalendarioIngresos {
     }
 
     async editarIngreso(id) {
-        // Implementar edición de ingreso
-        console.log('Editar ingreso:', id);
-        // TODO: Abrir modal de edición con datos prellenados
+        try {
+            // Implementar edición de ingreso
+            console.log('Editar ingreso:', id);
+            
+            // Buscar el ingreso en la lista
+            const ingreso = this.ingresos.find(i => i.id === id);
+            if (!ingreso) {
+                console.error('No se encontró el ingreso con ID:', id);
+                return;
+            }
+            
+            // Abrir modal de edición con datos prellenados
+            const modal = document.getElementById('modal-ingreso');
+            if (!modal) return;
+            
+            // Prellenar formulario
+            const form = document.getElementById('form-ingreso');
+            if (form) {
+                // Llenar campos usando getElementById para evitar errores
+                document.getElementById('ingreso-id').value = ingreso.id || '';
+                document.getElementById('ingreso-tipo').value = ingreso.tipo || '';
+                document.getElementById('ingreso-descripcion').value = ingreso.descripcion || '';
+                document.getElementById('ingreso-monto').value = ingreso.monto || '';
+                document.getElementById('ingreso-fecha').value = ingreso.fecha || '';
+                document.getElementById('ingreso-categoria').value = ingreso.categoria || '';
+                
+                // Si tiene campos de recurrencia, llenarlos
+                if (ingreso.es_recurrente) {
+                    const esRecurrenteCheck = document.getElementById('ingreso-es-recurrente');
+                    if (esRecurrenteCheck) {
+                        esRecurrenteCheck.checked = true;
+                        
+                        // Mostrar campos de recurrencia
+                        const camposRecurrencia = document.querySelector('.campos-recurrencia');
+                        if (camposRecurrencia) {
+                            camposRecurrencia.style.display = 'block';
+                        }
+                        
+                        // Llenar campos de recurrencia
+                        const frecuenciaSelect = document.getElementById('ingreso-frecuencia-recurrencia');
+                        const diaInput = document.getElementById('ingreso-dia-recurrencia');
+                        const fechaFinInput = document.getElementById('ingreso-fecha-fin-recurrencia');
+                        
+                        if (frecuenciaSelect) frecuenciaSelect.value = ingreso.frecuencia_recurrencia || 'mensual';
+                        if (diaInput) diaInput.value = ingreso.dia_recurrencia || '1';
+                        if (fechaFinInput && ingreso.fecha_fin_recurrencia) {
+                            fechaFinInput.value = ingreso.fecha_fin_recurrencia;
+                        }
+                    }
+                }
+                
+                // Mostrar modal
+                this.mostrarModal(modal);
+                
+                // Cambiar título del modal para indicar edición
+                const modalTitle = document.querySelector('#modal-ingreso-title');
+                if (modalTitle) {
+                    modalTitle.textContent = '✏️ Editar Ingreso';
+                }
+                
+                // Cerrar modal temporal
+                const tempModal = document.querySelector('.temp-modal');
+                if (tempModal) tempModal.remove();
+            }
+        } catch (error) {
+            console.error('Error al editar ingreso:', error);
+            await window.Alertas.error('Error al editar', 'No se pudo abrir el formulario de edición');
+        }
     }
 
     async eliminarIngreso(id) {
-        if (confirm('¿Estás seguro de que quieres eliminar este ingreso?')) {
+        const confirmacion = await window.Alertas.confirmarEliminacion('ingreso');
+        if (confirmacion.isConfirmed) {
             try {
                 await this.storage.deleteItem('ingreso', id);
                 await this.refrescarCalendario();
@@ -234,7 +310,7 @@ class CalendarioIngresos {
                 console.log('✅ Ingreso eliminado');
             } catch (error) {
                 console.error('Error al eliminar ingreso:', error);
-                alert('Error al eliminar el ingreso');
+                await window.Alertas.error('Error al eliminar', 'No se pudo eliminar el ingreso');
             }
         }
     }
@@ -295,5 +371,4 @@ class CalendarioIngresos {
     }
 }
 
-// Crear instancia global después de que se inicialice el storage
-window.CalendarioIngresos = null;
+// La instancia global se creará en app.js

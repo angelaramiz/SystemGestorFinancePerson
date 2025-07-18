@@ -10,6 +10,9 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
+    <!-- SweetAlert2 para alertas modernas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <!-- FullCalendar para los calendarios -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     
@@ -19,6 +22,7 @@
     <!-- Estilos -->
     <link rel="stylesheet" href="src/css/main.css">
     <link rel="stylesheet" href="src/css/ventanas.css">
+    <link rel="stylesheet" href="src/css/alertas.css">
     <link rel="stylesheet" href="css/supabase-update.css">
     <link rel="stylesheet" href="css/recurrencia.css">
     
@@ -214,6 +218,8 @@
                 <button class="modal-close">&times;</button>
             </div>
             <form id="form-ingreso" class="modal-form">
+                <!-- Campo oculto para ID (edición) -->
+                <input type="hidden" id="ingreso-id" name="ingreso-id" value="">
                 <div class="form-group">
                     <label for="ingreso-tipo">Tipo de Ingreso:</label>
                     <select id="ingreso-tipo" class="form-select" required>
@@ -530,6 +536,7 @@
     <!-- Scripts -->
     <script src="src/js/utils/logger.js"></script>
     <script src="src/js/utils/configuracion-mexico.js"></script>
+    <script src="src/js/utils/alertas.js"></script>
     <script src="src/js/modules/supabase-config.js"></script>
     <script src="src/js/modules/storage.js"></script>
     <script src="js/utils/recurrencia.js"></script>

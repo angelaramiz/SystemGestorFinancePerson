@@ -244,30 +244,47 @@ class CalendarioIngresos {
             // Prellenar formulario
             const form = document.getElementById('form-ingreso');
             if (form) {
-                // Llenar campos
-                form.elements['ingreso-id'].value = ingreso.id;
-                form.elements['ingreso-tipo'].value = ingreso.tipo;
-                form.elements['ingreso-descripcion'].value = ingreso.descripcion;
-                form.elements['ingreso-monto'].value = ingreso.monto;
-                form.elements['ingreso-fecha'].value = ingreso.fecha;
-                form.elements['ingreso-categoria'].value = ingreso.categoria;
-                form.elements['ingreso-notas'].value = ingreso.notas || '';
+                // Llenar campos usando getElementById para evitar errores
+                document.getElementById('ingreso-id').value = ingreso.id || '';
+                document.getElementById('ingreso-tipo').value = ingreso.tipo || '';
+                document.getElementById('ingreso-descripcion').value = ingreso.descripcion || '';
+                document.getElementById('ingreso-monto').value = ingreso.monto || '';
+                document.getElementById('ingreso-fecha').value = ingreso.fecha || '';
+                document.getElementById('ingreso-categoria').value = ingreso.categoria || '';
                 
                 // Si tiene campos de recurrencia, llenarlos
-                if (ingreso.es_recurrente && window.RecurrenceManager) {
-                    form.elements['recurrence-toggle'].checked = true;
-                    window.RecurrenceManager.mostrarOpcionesRecurrencia();
-                    
-                    form.elements['recurrence-frequency'].value = ingreso.frecuencia_recurrencia || 'mensual';
-                    form.elements['recurrence-day'].value = ingreso.dia_recurrencia || '1';
-                    
-                    if (ingreso.fecha_fin_recurrencia) {
-                        form.elements['recurrence-end-date'].value = ingreso.fecha_fin_recurrencia;
+                if (ingreso.es_recurrente) {
+                    const esRecurrenteCheck = document.getElementById('ingreso-es-recurrente');
+                    if (esRecurrenteCheck) {
+                        esRecurrenteCheck.checked = true;
+                        
+                        // Mostrar campos de recurrencia
+                        const camposRecurrencia = document.querySelector('.campos-recurrencia');
+                        if (camposRecurrencia) {
+                            camposRecurrencia.style.display = 'block';
+                        }
+                        
+                        // Llenar campos de recurrencia
+                        const frecuenciaSelect = document.getElementById('ingreso-frecuencia-recurrencia');
+                        const diaInput = document.getElementById('ingreso-dia-recurrencia');
+                        const fechaFinInput = document.getElementById('ingreso-fecha-fin-recurrencia');
+                        
+                        if (frecuenciaSelect) frecuenciaSelect.value = ingreso.frecuencia_recurrencia || 'mensual';
+                        if (diaInput) diaInput.value = ingreso.dia_recurrencia || '1';
+                        if (fechaFinInput && ingreso.fecha_fin_recurrencia) {
+                            fechaFinInput.value = ingreso.fecha_fin_recurrencia;
+                        }
                     }
                 }
                 
                 // Mostrar modal
                 this.mostrarModal(modal);
+                
+                // Cambiar título del modal para indicar edición
+                const modalTitle = document.querySelector('#modal-ingreso-title');
+                if (modalTitle) {
+                    modalTitle.textContent = '✏️ Editar Ingreso';
+                }
                 
                 // Cerrar modal temporal
                 const tempModal = document.querySelector('.temp-modal');
@@ -275,12 +292,13 @@ class CalendarioIngresos {
             }
         } catch (error) {
             console.error('Error al editar ingreso:', error);
-            alert('Error al abrir el formulario de edición');
+            await window.Alertas.error('Error al editar', 'No se pudo abrir el formulario de edición');
         }
     }
 
     async eliminarIngreso(id) {
-        if (confirm('¿Estás seguro de que quieres eliminar este ingreso?')) {
+        const confirmacion = await window.Alertas.confirmarEliminacion('ingreso');
+        if (confirmacion.isConfirmed) {
             try {
                 await this.storage.deleteItem('ingreso', id);
                 await this.refrescarCalendario();
@@ -292,7 +310,7 @@ class CalendarioIngresos {
                 console.log('✅ Ingreso eliminado');
             } catch (error) {
                 console.error('Error al eliminar ingreso:', error);
-                alert('Error al eliminar el ingreso');
+                await window.Alertas.error('Error al eliminar', 'No se pudo eliminar el ingreso');
             }
         }
     }
