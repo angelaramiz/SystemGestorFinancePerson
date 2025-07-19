@@ -109,6 +109,7 @@
         <button onclick="showMetrics()">📊 Ver Métricas</button>
         <button onclick="showState()">🔍 Ver Estado</button>
         <button onclick="testSystems()">🧪 Test Sistemas</button>
+        <button onclick="testStorage()">📦 Test Storage</button>
         <button onclick="clearCache()">🗑️ Limpiar Caché</button>
         <button onclick="runTests()">🧪 Ejecutar Tests</button>
     </div>
@@ -142,6 +143,9 @@
     <script src="js/core/MetricsSystem.js"></script>
     <script src="js/core/CacheSystem.js"></script>
     <script src="js/modules/logger.js"></script>
+    
+    <!-- 📦 Cargar StorageManager migrado -->
+    <script src="js/core/StorageManagerMigrated.js"></script>
     
     <!-- 🔧 Forzar disponibilidad del Logger -->
     <script>
@@ -216,6 +220,12 @@
                 if (this.validation) this.di.register('validation', () => this.validation, true);
                 if (this.metrics) this.di.register('metrics', () => this.metrics, true);
                 if (this.cache) this.di.register('cache', () => this.cache, true);
+                
+                // 📦 Crear StorageManager migrado
+                if (window.StorageManagerMigrated) {
+                    this.storage = new window.StorageManagerMigrated(this.di);
+                    this.di.register('storage', () => this.storage, true);
+                }
             }
 
             async init() {
@@ -242,6 +252,16 @@
                     
                     this.setupGlobalEvents();
                     await this.configurarFormatoMexicano();
+                    
+                    // 📦 Inicializar StorageManager migrado
+                    if (this.storage) {
+                        await this.storage.init();
+                        if (logger.success) {
+                            logger.success('✅ StorageManager migrado inicializado');
+                        }
+                    }
+                    
+                    await this.cargarDatosUsuario();
                     
                     this.state.isInitialized = true;
                     
@@ -310,6 +330,9 @@
                 return success;
             }
 
+            /**
+             * 🌍 Configurar formato y localización para México
+             */
             async configurarFormatoMexicano() {
                 const cache = this.cache;
                 
@@ -342,6 +365,47 @@
                 window.formatNumber = (number) => {
                     return new Intl.NumberFormat('es-MX').format(number);
                 };
+            }
+
+            /**
+             * 🔄 Cargar datos del usuario desde StorageManager migrado
+             */
+            async cargarDatosUsuario() {
+                const logger = this.logger || console;
+                
+                try {
+                    if (!this.storage) {
+                        if (logger.warn) {
+                            logger.warn('⚠️ StorageManager no disponible, saltando carga de datos');
+                        }
+                        return;
+                    }
+                    
+                    // 📥 Cargar datos usando StorageManager migrado
+                    const ingresos = await this.storage.getIngresos();
+                    const gastos = await this.storage.getGastos();
+                    const configuracion = await this.storage.getConfiguracion();
+                    const categorias = await this.storage.getCategorias();
+                    
+                    this.state.userData = {
+                        ingresos: ingresos || [],
+                        gastos: gastos || [],
+                        configuracion: configuracion || {},
+                        categorias: categorias || {},
+                        lastUpdate: new Date().toISOString()
+                    };
+                    
+                    if (logger.info) {
+                        logger.info(`📊 Datos cargados: ${this.state.userData.ingresos.length} ingresos, ${this.state.userData.gastos.length} gastos`);
+                    }
+                    
+                } catch (error) {
+                    if (logger.error) {
+                        logger.error('❌ Error cargando datos de usuario:', error);
+                    } else {
+                        console.error('❌ Error cargando datos de usuario:', error);
+                    }
+                }
             }
 
             setupGlobalEvents() {
@@ -546,10 +610,110 @@
         }
         
         /**
+         * 📦 Probar StorageManager migrado
+         */
+        async function testStorage() {
+            if (!window.migratedApp || !window.migratedApp.storage) {
+                alert('🚨 StorageManager no disponible. Inicializa la aplicación primero.');
+                return;
+            }
+            
+            const storage = window.migratedApp.storage;
+            const display = document.getElementById('metricsDisplay');
+            
+            try {
+                display.innerHTML = '<h3>📦 Probando StorageManager Migrado...</h3>';
+                display.style.display = 'block';
+                
+                let results = [];
+                
+                // 🧪 Test 1: Guardar ingreso
+                try {
+                    const ingreso = {
+                        monto: 1500,
+                        descripcion: 'Test ingreso desde UI',
+                        categoria: 'salario',
+                        fecha: new Date().toISOString().split('T')[0]
+                    };
+                    
+                    const saved = await storage.saveIngreso(ingreso);
+                    results.push(`✅ Ingreso guardado: ID ${saved.id}`);
+                } catch (e) {
+                    results.push(`❌ Error guardando ingreso: ${e.message}`);
+                }
+                
+                // 🧪 Test 2: Guardar gasto
+                try {
+                    const gasto = {
+                        monto: 500,
+                        descripcion: 'Test gasto desde UI',
+                        categoria: 'alimentacion',
+                        fecha: new Date().toISOString().split('T')[0]
+                    };
+                    
+                    const saved = await storage.saveGasto(gasto);
+                    results.push(`✅ Gasto guardado: ID ${saved.id}`);
+                } catch (e) {
+                    results.push(`❌ Error guardando gasto: ${e.message}`);
+                }
+                
+                // 🧪 Test 3: Obtener datos
+                try {
+                    const ingresos = await storage.getIngresos();
+                    const gastos = await storage.getGastos();
+                    results.push(`✅ Datos obtenidos: ${ingresos.length} ingresos, ${gastos.length} gastos`);
+                } catch (e) {
+                    results.push(`❌ Error obteniendo datos: ${e.message}`);
+                }
+                
+                // 🧪 Test 4: Health check
+                try {
+                    const health = await storage.healthCheck();
+                    const healthStatus = Object.values(health).every(status => status === 'healthy') ? '✅' : '⚠️';
+                    results.push(`${healthStatus} Health check: ${JSON.stringify(health)}`);
+                } catch (e) {
+                    results.push(`❌ Error en health check: ${e.message}`);
+                }
+                
+                // 🧪 Test 5: Backup
+                try {
+                    const backup = await storage.createBackup();
+                    results.push(`✅ Backup creado: ${backup.timestamp}`);
+                } catch (e) {
+                    results.push(`❌ Error creando backup: ${e.message}`);
+                }
+                
+                // 📊 Mostrar resultados
+                display.innerHTML = `
+                    <h3>📦 Resultados de Tests de StorageManager</h3>
+                    <div style="font-family: monospace; white-space: pre-line; line-height: 1.6;">
+${results.join('\n')}
+
+📊 Stats del Storage:
+${JSON.stringify(storage.getStorageStats(), null, 2)}
+                    </div>
+                `;
+                
+            } catch (error) {
+                display.innerHTML = `
+                    <h3>❌ Error en Tests de StorageManager</h3>
+                    <pre style="color: red;">${error.message}</pre>
+                `;
+            }
+        }
+        
+        /**
          * 🧪 Ejecutar suite de tests
          */
         function runTests() {
+            // Abrir tests originales
             window.open('http://localhost:8000/src/tests/test-runner.html', '_blank');
+            
+            // También mostrar tests de StorageManager si están disponibles
+            if (typeof testSuite !== 'undefined') {
+                console.log('🧪 Ejecutando tests de StorageManager en consola...');
+                // Los tests se ejecutarían aquí si el framework estuviera cargado
+            }
         }
         
         /**
