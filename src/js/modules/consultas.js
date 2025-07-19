@@ -57,14 +57,18 @@ class ModuloConsultas {
                 const hasta = document.getElementById('fecha-hasta')?.value;
                 const tipo = document.getElementById('tipo-consulta')?.value || 'resumen';
                 
-                if (desde && hasta) {
-                    await this.ejecutarConsulta(desde, hasta, tipo);
-                } else {
-                    if (!fechaDesde || !fechaHasta || new Date(fechaDesde) > new Date(fechaHasta)) {
-                await window.Alertas.advertencia('Fechas inválidas', 'Por favor, selecciona un rango de fechas válido');
-                return;
-            }
+                // Validar que se hayan seleccionado fechas válidas
+                if (!desde || !hasta) {
+                    await window.Alertas.advertencia('Fechas requeridas', 'Por favor, selecciona las fechas de inicio y fin');
+                    return;
                 }
+                
+                if (new Date(desde) > new Date(hasta)) {
+                    await window.Alertas.advertencia('Fechas inválidas', 'La fecha de inicio no puede ser posterior a la fecha de fin');
+                    return;
+                }
+                
+                await this.ejecutarConsulta(desde, hasta, tipo);
             });
         }
 

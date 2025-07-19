@@ -3,19 +3,25 @@
  * Versión optimizada sin logs para producción
  */
 
-const CACHE_NAME = 'gestor-financiero-mx-v2.1.0';
+const CACHE_NAME = 'gestor-financiero-mx-v2.0.1-cleaned';
 const urlsToCache = [
     './index.html',
     './src/css/main.css',
+    './src/css/ventanas.css',
+    './src/css/alertas.css',
+    './css/recurrencia.css',
+    './css/supabase-update.css',
     './src/js/app.js',
-    './src/js/utils/logger.js',
+    './src/js/modules/logger.js',
     './src/js/utils/configuracion-mexico.js',
+    './src/js/utils/alertas.js',
     './src/js/modules/supabase-config.js',
     './src/js/modules/storage.js',
     './src/js/modules/calendar-ingresos.js',
     './src/js/modules/calendar-gastos.js',
     './src/js/modules/consultas.js',
     './src/js/modules/modals.js',
+    './src/js/modules/recurrence.js',
     './manifest.json'
 ];
 

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Gestor Financiero Personal - México 🇲🇽 v2.1</title>
+    <link rel="icon" type="image/svg+xml" href="src/assets/favicon.svg">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="src/css/main.css" as="style">
+    <link rel="preload" href="src/js/core/DependencyInjector.js" as="script">
+    <link rel="preload" href="src/js/core/EventBus.js" as="script">
+    
+    <!-- Critical CSS inline para mejorar LCP -->
+    <style>
+        /* Critical CSS - Solo lo esencial para primera carga */
+        :root {
+            --primary-color: #2563eb;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --text-primary: #1e293b;
+        }
+        
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background-color);
+            color: var(--text-primary);
+        }
+        
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--surface-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .app-container {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .app-container.ready {
+            opacity: 1;
+        }
+    </style>
+    
+    <!-- External libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    
+    <!-- Non-critical CSS -->
+    <link rel="stylesheet" href="src/css/main.css">
+    <link rel="stylesheet" href="src/css/ventanas.css">
+    <link rel="stylesheet" href="src/css/alertas.css">
+    <link rel="stylesheet" href="css/supabase-update.css">
+    <link rel="stylesheet" href="css/recurrencia.css">
+    
+    <!-- PWA -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="Sistema de gestión financiera personal para México - Pesos Mexicanos (MXN) v2.1">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+</head>
+<body>
+    <!-- Enhanced loader with progress -->
+    <div id="app-loader" class="loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p id="loader-text">Iniciando Gestor Financiero...</p>
+            <div id="loader-progress" style="width: 200px; height: 4px; background: #e2e8f0; border-radius: 2px; margin-top: 1rem;">
+                <div id="loader-bar" style="height: 100%; background: var(--primary-color); border-radius: 2px; width: 0%; transition: width 0.3s ease;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main application -->
+    <div id="app" class="app-container">
+        <!-- ... resto del contenido HTML existente ... -->
+        <!-- Mantener toda la estructura HTML actual pero mejorada -->
+    </div>
+
+    <!-- Error fallback -->
+    <div id="error-fallback" style="display: none; padding: 2rem; text-align: center;">
+        <h2>⚠️ Error al cargar la aplicación</h2>
+        <p id="error-message"></p>
+        <button onclick="location.reload()" style="padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
+            🔄 Recargar
+        </button>
+    </div>
+
+    <!-- Core system scripts - load first -->
+    <script>
+        // Performance mark para medir tiempo de carga
+        performance.mark('app-start');
+        
+        // Configuración de carga progresiva
+        const APP_CONFIG = {
+            version: '2.1.0-MX',
+            loadingSteps: [
+                'Inicializando sistemas core...',
+                'Cargando configuración...',
+                'Preparando almacenamiento...',
+                'Inicializando componentes...',
+                'Configurando interfaz...',
+                'Finalizando carga...'
+            ],
+            currentStep: 0
+        };
+
+        // Función para actualizar progreso de carga
+        function updateLoadingProgress(stepIndex, customMessage = null) {
+            const progressBar = document.getElementById('loader-bar');
+            const progressText = document.getElementById('loader-text');
+            
+            if (progressBar && progressText) {
+                const progress = ((stepIndex + 1) / APP_CONFIG.loadingSteps.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                
+                const message = customMessage || APP_CONFIG.loadingSteps[stepIndex] || 'Cargando...';
+                progressText.textContent = message;
+            }
+        }
+
+        // Función para mostrar error
+        function showError(message) {
+            const loader = document.getElementById('app-loader');
+            const errorFallback = document.getElementById('error-fallback');
+            const errorMessage = document.getElementById('error-message');
+            
+            if (loader) loader.style.display = 'none';
+            if (errorFallback) errorFallback.style.display = 'block';
+            if (errorMessage) errorMessage.textContent = message;
+        }
+
+        // Función para finalizar carga
+        function finishLoading() {
+            performance.mark('app-ready');
+            performance.measure('app-load-time', 'app-start', 'app-ready');
+            
+            const loader = document.getElementById('app-loader');
+            const app = document.getElementById('app');
+            
+            if (loader && app) {
+                updateLoadingProgress(APP_CONFIG.loadingSteps.length - 1, '¡Listo! 🎉');
+                
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    app.classList.add('ready');
+                    
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                    }, 300);
+                }, 500);
+            }
+        }
+    </script>
+
+    <!-- Load core systems in order -->
+    <script src="src/js/modules/logger.js"></script>
+    <script src="src/js/core/DependencyInjector.js"></script>
+    <script src="src/js/core/EventBus.js"></script>
+    <script src="src/js/core/ValidationSystem.js"></script>
+    <script src="src/js/core/MetricsSystem.js"></script>
+    <script src="src/js/core/CacheSystem.js"></script>
+
+    <!-- Configuration and utilities -->
+    <script src="src/js/utils/configuracion-mexico.js"></script>
+    <script src="src/js/utils/alertas.js"></script>
+
+    <!-- Core modules -->
+    <script src="src/js/modules/supabase-config.js"></script>
+    <script src="src/js/modules/storage.js"></script>
+    <script src="src/js/modules/recurrence.js"></script>
+
+    <!-- UI modules -->
+    <script src="src/js/modules/modals.js"></script>
+    <script src="src/js/modules/consultas.js"></script>
+    <script src="src/js/modules/calendar-ingresos.js"></script>
+    <script src="src/js/modules/calendar-gastos.js"></script>
+
+    <!-- Main application -->
+    <script src="src/js/app-refactored.js"></script>
+
+    <!-- Service Worker registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registrado:', registration);
+                    })
+                    .catch(error => {
+                        console.warn('❌ Error al registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+
+    <!-- Error handling -->
+    <script>
+        window.addEventListener('error', (event) => {
+            console.error('Error crítico:', event.error);
+            if (!window.gestorApp) {
+                showError(`Error de JavaScript: ${event.message}`);
+            }
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Promise rechazada:', event.reason);
+            if (!window.gestorApp) {
+                showError(`Error de promesa: ${event.reason}`);
+            }
+        });
+    </script>
+</body>
+</html>

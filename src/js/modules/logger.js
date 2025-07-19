@@ -137,17 +137,19 @@ class Logger {
     }
 }
 
-// Crear instancia global
-window.Logger = new Logger();
-
-// Comandos de consola para desarrolladores
-if (window.Logger.isDev) {
-    window.devMode = {
-        enable: () => Logger.toggleDevMode(),
-        disable: () => Logger.toggleDevMode(),
-        verbose: () => Logger.toggleVerboseMode(),
-        help: () => {
-            console.log(`
+// Crear instancia global única
+if (!window.logger) {
+    window.logger = new Logger();
+    window.Logger = Logger; // Clase para métodos estáticos
+    
+    // Comandos de consola para desarrolladores
+    if (window.logger.isDev) {
+        window.devMode = {
+            enable: () => Logger.toggleDevMode(),
+            disable: () => Logger.toggleDevMode(),
+            verbose: () => Logger.toggleVerboseMode(),
+            help: () => {
+                console.log(`
 %c🛠️ Comandos de Desarrollador:
 %cdevMode.enable()   - Activar logs de desarrollo
 %cdevMode.disable()  - Desactivar logs
@@ -157,23 +159,30 @@ if (window.Logger.isDev) {
 %c🔗 URLs útiles:
 %c?dev=true         - Activar modo dev por URL
 %c?verbose=true     - Activar logs detallados
-            `, 
-            'color: #3b82f6; font-weight: bold;',
-            'color: #22c55e;',
-            'color: #22c55e;', 
-            'color: #22c55e;',
-            'color: #22c55e;',
-            'color: #f59e0b; font-weight: bold;',
-            'color: #6b7280;',
-            'color: #6b7280;'
-            );
-        }
-    };
-    
-    // Mostrar ayuda automáticamente
-    setTimeout(() => {
-        console.log('%cEscribe devMode.help() para ver comandos disponibles', 'color: #6b7280;');
-    }, 1000);
+                `, 
+                'color: #3b82f6; font-weight: bold;',
+                'color: #22c55e;',
+                'color: #22c55e;', 
+                'color: #22c55e;',
+                'color: #22c55e;',
+                'color: #f59e0b; font-weight: bold;',
+                'color: #6b7280;',
+                'color: #6b7280;'
+                );
+            }
+        };
+        
+        // Mostrar ayuda automáticamente
+        setTimeout(() => {
+            console.log('%cEscribe devMode.help() para ver comandos disponibles', 'color: #6b7280;');
+        }, 1000);
+    }
 }
 
-export default Logger;
+// 🌍 Hacer Logger disponible globalmente
+window.Logger = Logger;
+
+// 📤 Export para módulos ES6 (si se necesita)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Logger;
+}

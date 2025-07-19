@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Diagnóstico de Sistemas Core</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .system { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .available { background: #e8f5e8; border-left: 4px solid #4CAF50; }
+        .unavailable { background: #ffeaea; border-left: 4px solid #F44336; }
+        .warning { background: #fff8e1; border-left: 4px solid #FF9800; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #4CAF50; color: white; }
+        .btn-warning { background: #FF9800; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Diagnóstico de Sistemas Core</h1>
+        
+        <div>
+            <button class="btn-primary" onclick="runDiagnostic()">🔍 Ejecutar Diagnóstico</button>
+            <button class="btn-warning" onclick="loadSystems()">🔄 Cargar Sistemas</button>
+            <button class="btn-success" onclick="testSimple()">🧪 Test Simple</button>
+        </div>
+        
+        <div id="diagnostic-results"></div>
+        
+        <h3>📊 Estado Actual de window</h3>
+        <div id="window-state"></div>
+    </div>
+
+    <!-- Cargar sistemas uno por uno para ver dónde falla -->
+    <script>
+        console.log('🔧 Iniciando diagnóstico...');
+        
+        function runDiagnostic() {
+            const results = document.getElementById('diagnostic-results');
+            results.innerHTML = '<h3>🔍 Resultados del Diagnóstico</h3>';
+            
+            // Verificar cada sistema
+            const systems = [
+                { name: 'DependencyInjector', global: 'DI', file: 'js/core/DependencyInjector.js' },
+                { name: 'EventBus', global: 'EventBus', file: 'js/core/EventBus.js' },
+                { name: 'ValidationSystem', global: 'ValidationSystem', file: 'js/core/ValidationSystem.js' },
+                { name: 'MetricsSystem', global: 'MetricsSystem', file: 'js/core/MetricsSystem.js' },
+                { name: 'CacheSystem', global: 'CacheSystem', file: 'js/core/CacheSystem.js' },
+                { name: 'Logger', global: 'Logger', file: 'js/modules/logger.js' }
+            ];
+            
+            systems.forEach(system => {
+                const available = window[system.global];
+                const status = available ? 'available' : 'unavailable';
+                const icon = available ? '✅' : '❌';
+                
+                results.innerHTML += `
+                    <div class="system ${status}">
+                        <strong>${icon} ${system.name}</strong>
+                        <br>Global: window.${system.global} = ${typeof available}
+                        <br>Archivo: ${system.file}
+                        ${available ? `<br>Tipo: ${available.constructor.name}` : ''}
+                    </div>
+                `;
+                
+                console.log(`${icon} ${system.name}:`, available);
+            });
+            
+            // Mostrar estado completo de window
+            showWindowState();
+        }
+        
+        function showWindowState() {
+            const windowState = document.getElementById('window-state');
+            const relevantGlobals = {};
+            
+            // Buscar todas las variables relevantes en window
+            for (let key in window) {
+                if (key.includes('DI') || 
+                    key.includes('Event') || 
+                    key.includes('Validation') || 
+                    key.includes('Metrics') || 
+                    key.includes('Cache') || 
+                    key.includes('Logger')) {
+                    relevantGlobals[key] = typeof window[key];
+                }
+            }
+            
+            windowState.innerHTML = `<pre>${JSON.stringify(relevantGlobals, null, 2)}</pre>`;
+        }
+        
+        async function loadSystems() {
+            const results = document.getElementById('diagnostic-results');
+            results.innerHTML = '<h3>🔄 Cargando Sistemas...</h3>';
+            
+            const systems = [
+                'js/core/DependencyInjector.js',
+                'js/modules/logger.js',
+                'js/core/EventBus.js',
+                'js/core/ValidationSystem.js',
+                'js/core/MetricsSystem.js',
+                'js/core/CacheSystem.js'
+            ];
+            
+            for (const systemFile of systems) {
+                try {
+                    results.innerHTML += `<p>Cargando ${systemFile}...</p>`;
+                    
+                    // Crear script tag dinámicamente
+                    const script = document.createElement('script');
+                    script.src = systemFile;
+                    script.onload = () => {
+                        results.innerHTML += `<p class="system available">✅ ${systemFile} cargado</p>`;
+                    };
+                    script.onerror = () => {
+                        results.innerHTML += `<p class="system unavailable">❌ Error cargando ${systemFile}</p>`;
+                    };
+                    
+                    document.head.appendChild(script);
+                    
+                    // Esperar un poco antes del siguiente
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                } catch (error) {
+                    results.innerHTML += `<p class="system unavailable">❌ Error: ${error.message}</p>`;
+                    console.error('Error cargando', systemFile, error);
+                }
+            }
+            
+            // Ejecutar diagnóstico después de cargar
+            setTimeout(runDiagnostic, 2000);
+        }
+        
+        function testSimple() {
+            const results = document.getElementById('diagnostic-results');
+            results.innerHTML = '<h3>🧪 Test Simple</h3>';
+            
+            // Test básico sin dependencias
+            try {
+                // Crear una instancia simple de DependencyInjector
+                const testDI = new (function() {
+                    this.deps = new Map();
+                    this.register = (name, factory) => this.deps.set(name, factory);
+                    this.resolve = (name) => {
+                        const factory = this.deps.get(name);
+                        return factory ? factory() : null;
+                    };
+                })();
+                
+                testDI.register('test', () => 'Test exitoso');
+                const result = testDI.resolve('test');
+                
+                results.innerHTML += `<p class="system available">✅ DI básico funciona: ${result}</p>`;
+                
+                // Test básico de EventBus
+                const testEventBus = new (function() {
+                    this.listeners = new Map();
+                    this.on = (event, callback) => {
+                        if (!this.listeners.has(event)) this.listeners.set(event, []);
+                        this.listeners.get(event).push(callback);
+                    };
+                    this.emit = (event, data) => {
+                        const callbacks = this.listeners.get(event) || [];
+                        callbacks.forEach(cb => cb(data));
+                    };
+                })();
+                
+                let testResult = '';
+                testEventBus.on('test', (data) => testResult = data);
+                testEventBus.emit('test', 'EventBus funciona');
+                
+                results.innerHTML += `<p class="system available">✅ EventBus básico funciona: ${testResult}</p>`;
+                
+            } catch (error) {
+                results.innerHTML += `<p class="system unavailable">❌ Error en test simple: ${error.message}</p>`;
+                console.error('Error en test simple:', error);
+            }
+        }
+        
+        // Ejecutar diagnóstico automático al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(runDiagnostic, 1000);
+        });
+    </script>
+</body>
+</html>

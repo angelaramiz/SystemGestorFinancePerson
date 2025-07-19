@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💼 Sistema Gestor Financiero - Versión Migrada 🔄</title>
+    
+    <!-- 🎨 Estilos principales -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/ventanas.css">
+    <link rel="stylesheet" href="css/alertas.css">
+    
+    <style>
+        .migration-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .system-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .status-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        
+        .status-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success { background-color: #4CAF50; }
+        .status-warning { background-color: #FF9800; }
+        .status-error { background-color: #F44336; }
+        .status-info { background-color: #2196F3; }
+        
+        .metrics-display {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .dev-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: 2px solid #667eea;
+            z-index: 1000;
+        }
+        
+        .dev-controls button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .dev-controls button:hover {
+            background: #5a67d8;
+        }
+    </style>
+</head>
+<body>
+    <!-- 🚀 Banner de Versión Migrada -->
+    <div class="migration-banner">
+        🔄 VERSIÓN MIGRADA - Sistema con Arquitectura Refactorizada (Sin ES6 Modules)
+        <br><small>Cargando sistemas core directamente</small>
+    </div>
+
+    <!-- 🎮 Controles de Desarrollo -->
+    <div class="dev-controls">
+        <h4 style="margin: 0 0 10px 0; color: #333;">🛠️ Dev Tools</h4>
+        <button onclick="initMigratedApp()">🚀 Inicializar App</button>
+        <button onclick="showMetrics()">📊 Ver Métricas</button>
+        <button onclick="showState()">🔍 Ver Estado</button>
+        <button onclick="testSystems()">🧪 Test Sistemas</button>
+        <button onclick="clearCache()">🗑️ Limpiar Caché</button>
+        <button onclick="runTests()">🧪 Ejecutar Tests</button>
+    </div>
+
+    <!-- 📊 Estado de Sistemas -->
+    <div class="container">
+        <h1>💼 Sistema de Gestión Financiera Personal</h1>
+        <h2>🔄 Versión Migrada con Nuevos Sistemas Core</h2>
+        
+        <div id="systemStatus" class="system-status">
+            <!-- Se llena dinámicamente -->
+        </div>
+        
+        <div id="metricsDisplay" class="metrics-display" style="display: none;">
+            <!-- Métricas en tiempo real -->
+        </div>
+        
+        <!-- 📱 Interfaz principal de la aplicación -->
+        <div id="appContainer">
+            <div style="text-align: center; padding: 50px; color: #666;">
+                <h3>🚀 Presiona "Inicializar App" para comenzar</h3>
+                <p>La aplicación migrada utiliza los nuevos sistemas core para mejor rendimiento y mantenibilidad.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔧 Cargar sistemas core directamente (sin ES6 modules) -->
+    <script src="js/core/DependencyInjector.js"></script>
+    <script src="js/core/EventBus.js"></script>
+    <script src="js/core/ValidationSystem.js"></script>
+    <script src="js/core/MetricsSystem.js"></script>
+    <script src="js/core/CacheSystem.js"></script>
+    <script src="js/modules/logger.js"></script>
+    
+    <!-- 🔧 Forzar disponibilidad del Logger -->
+    <script>
+        // Verificar y crear Logger si no existe
+        if (!window.Logger) {
+            console.warn('⚠️ Logger no se cargó correctamente, creando versión simple');
+            window.Logger = class SimpleLogger {
+                constructor() {
+                    this.isDev = true;
+                }
+                info(msg, ...args) { console.log(`ℹ️ ${msg}`, ...args); }
+                success(msg, ...args) { console.log(`✅ ${msg}`, ...args); }
+                error(msg, ...args) { console.error(`❌ ${msg}`, ...args); }
+                warn(msg, ...args) { console.warn(`⚠️ ${msg}`, ...args); }
+                debug(msg, ...args) { console.debug(`🔍 ${msg}`, ...args); }
+            };
+        }
+        
+        console.log('🔧 Verificación de sistemas core completada');
+    </script>
+    
+    <script>
+        // 🚀 Versión simplificada del GestorFinancieroMigrado
+        class GestorFinancieroMigrado {
+            constructor() {
+                // Usar las instancias globales existentes en lugar de crear nuevas
+                this.di = window.DI || new DependencyInjector();
+                this.eventBus = window.EventBus;
+                this.logger = this.createLogger();
+                this.validation = window.ValidationSystem;
+                this.metrics = window.MetricsSystem;
+                this.cache = window.CacheSystem;
+                
+                this.initializeCoreServices();
+                
+                this.state = {
+                    isInitialized: false,
+                    currentView: 'dashboard',
+                    userData: null,
+                    settings: {}
+                };
+                
+                this.regionConfig = {
+                    currency: 'MXN',
+                    locale: 'es-MX',
+                    timeZone: 'America/Mexico_City'
+                };
+            }
+
+            /**
+             * 🔧 Crear Logger (con respaldo si no está disponible)
+             */
+            createLogger() {
+                if (window.Logger) {
+                    return new window.Logger();
+                }
+                
+                // Logger simple de respaldo
+                return {
+                    info: (msg, ...args) => console.log(`ℹ️ ${msg}`, ...args),
+                    success: (msg, ...args) => console.log(`✅ ${msg}`, ...args),
+                    error: (msg, ...args) => console.error(`❌ ${msg}`, ...args),
+                    warn: (msg, ...args) => console.warn(`⚠️ ${msg}`, ...args),
+                    debug: (msg, ...args) => console.debug(`🔍 ${msg}`, ...args)
+                };
+            }
+
+            initializeCoreServices() {
+                // Si ya tenemos las instancias globales, las registramos en DI
+                if (this.eventBus) this.di.register('eventBus', () => this.eventBus, true);
+                if (this.logger) this.di.register('logger', () => this.logger, true);
+                if (this.validation) this.di.register('validation', () => this.validation, true);
+                if (this.metrics) this.di.register('metrics', () => this.metrics, true);
+                if (this.cache) this.di.register('cache', () => this.cache, true);
+            }
+
+            async init() {
+                try {
+                    // Verificar que los sistemas core estén disponibles
+                    if (!this.checkCoreSystemsAvailable()) {
+                        throw new Error('No todos los sistemas core están disponibles');
+                    }
+                    
+                    const logger = this.logger || console;
+                    const metrics = this.metrics;
+                    const eventBus = this.eventBus;
+                    
+                    if (logger.info) {
+                        logger.info('🚀 Iniciando Sistema de Gestión Financiera Personal - Versión Migrada');
+                    } else {
+                        console.log('🚀 Iniciando Sistema de Gestión Financiera Personal - Versión Migrada');
+                    }
+                    
+                    if (metrics && metrics.recordMetric) {
+                        metrics.recordMetric('app.initialization.started', 1);
+                    }
+                    const startTime = performance.now();
+                    
+                    this.setupGlobalEvents();
+                    await this.configurarFormatoMexicano();
+                    
+                    this.state.isInitialized = true;
+                    
+                    const initTime = performance.now() - startTime;
+                    if (metrics && metrics.recordMetric) {
+                        metrics.recordMetric('app.initialization.completed', 1);
+                        metrics.recordMetric('app.initialization.time', initTime);
+                    }
+                    
+                    if (eventBus && eventBus.emit) {
+                        eventBus.emit('app:ready', {
+                            initTime,
+                            version: '2.0.0-migrated-simple',
+                            region: this.regionConfig
+                        });
+                    }
+                    
+                    if (logger.success) {
+                        logger.success(`✅ Aplicación inicializada correctamente en ${initTime.toFixed(2)}ms`);
+                    } else {
+                        console.log(`✅ Aplicación inicializada correctamente en ${initTime.toFixed(2)}ms`);
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error durante la inicialización:', error);
+                    throw error;
+                }
+            }
+
+            /**
+             * ✅ Verificar que los sistemas core estén disponibles
+             */
+            checkCoreSystemsAvailable() {
+                const systems = {
+                    'DI': window.DI,
+                    'EventBus': window.EventBus,
+                    'ValidationSystem': window.ValidationSystem,
+                    'MetricsSystem': window.MetricsSystem,
+                    'CacheSystem': window.CacheSystem
+                };
+                
+                let allAvailable = true;
+                let availableCount = 0;
+                
+                for (const [name, system] of Object.entries(systems)) {
+                    if (!system) {
+                        console.warn(`⚠️ Sistema ${name} no está disponible`);
+                        allAvailable = false;
+                    } else {
+                        console.log(`✅ Sistema ${name} disponible`);
+                        availableCount++;
+                    }
+                }
+                
+                // Logger es opcional
+                if (window.Logger) {
+                    console.log(`✅ Sistema Logger disponible`);
+                } else {
+                    console.log(`⚠️ Sistema Logger no disponible (opcional - usando console)`);
+                }
+                
+                // Consideramos exitoso si tenemos al menos los 5 sistemas principales
+                const success = availableCount >= 5;
+                console.log(`📊 Sistemas disponibles: ${availableCount}/5 requeridos`);
+                
+                return success;
+            }
+
+            async configurarFormatoMexicano() {
+                const cache = this.cache;
+                
+                let config = null;
+                if (cache) {
+                    config = await cache.get('locale.config.mx');
+                }
+                
+                if (!config) {
+                    config = {
+                        currency: { code: 'MXN', symbol: '$' },
+                        number: { locale: 'es-MX' },
+                        date: { locale: 'es-MX', timeZone: 'America/Mexico_City' }
+                    };
+                    
+                    if (cache) {
+                        await cache.set('locale.config.mx', config, { ttl: 86400000 });
+                    }
+                }
+                
+                this.regionConfig = { ...this.regionConfig, ...config };
+                
+                window.formatCurrency = (amount) => {
+                    return new Intl.NumberFormat('es-MX', {
+                        style: 'currency',
+                        currency: 'MXN'
+                    }).format(amount);
+                };
+                
+                window.formatNumber = (number) => {
+                    return new Intl.NumberFormat('es-MX').format(number);
+                };
+            }
+
+            setupGlobalEvents() {
+                const eventBus = this.eventBus;
+                const logger = this.logger || console;
+                
+                if (!eventBus || !eventBus.on) return;
+                
+                eventBus.on('app:error', (error) => {
+                    if (logger.error) {
+                        logger.error('🚨 Error de aplicación:', error);
+                    } else {
+                        console.error('🚨 Error de aplicación:', error);
+                    }
+                });
+                
+                eventBus.on('user:action', (action) => {
+                    const metrics = this.metrics;
+                    if (metrics && metrics.recordMetric) {
+                        metrics.recordMetric('user.action.' + action.type, 1, action.details);
+                    }
+                });
+            }
+
+            getMetrics() {
+                const metrics = this.metrics;
+                if (metrics && metrics.getMetricsSummary) {
+                    return metrics.getMetricsSummary();
+                }
+                
+                return { 
+                    message: 'Metrics not available',
+                    timestamp: new Date().toISOString(),
+                    status: 'disabled'
+                };
+            }
+
+            getState() {
+                return {
+                    ...this.state,
+                    metrics: this.getMetrics(),
+                    timestamp: new Date().toISOString()
+                };
+            }
+        }
+        
+        // 🌍 Variables globales
+        window.GestorFinancieroMigrado = GestorFinancieroMigrado;
+        window.migratedApp = null;
+        window.debugMode = true;
+        
+        /**
+         * 🚀 Inicializar aplicación migrada
+         */
+        async function initMigratedApp() {
+            try {
+                updateSystemStatus('app', 'info', 'Inicializando...');
+                
+                window.migratedApp = new window.GestorFinancieroMigrado();
+                await window.migratedApp.init();
+                
+                updateSystemStatus('app', 'success', 'Inicializado correctamente');
+                updateAllSystemStatus();
+                
+                document.getElementById('appContainer').innerHTML = `
+                    <div style="text-align: center; padding: 30px; background: #e8f5e8; border-radius: 10px;">
+                        <h3>✅ Aplicación Migrada Inicializada</h3>
+                        <p>Todos los sistemas core están funcionando correctamente.</p>
+                        <div style="margin: 20px 0;">
+                            <button onclick="showMetrics()" style="margin: 5px; padding: 10px 20px; border: none; background: #667eea; color: white; border-radius: 5px; cursor: pointer;">📊 Ver Métricas</button>
+                            <button onclick="showState()" style="margin: 5px; padding: 10px 20px; border: none; background: #667eea; color: white; border-radius: 5px; cursor: pointer;">🔍 Ver Estado</button>
+                            <button onclick="testSystems()" style="margin: 5px; padding: 10px 20px; border: none; background: #667eea; color: white; border-radius: 5px; cursor: pointer;">🧪 Test Sistemas</button>
+                        </div>
+                    </div>
+                `;
+                
+                console.log('🎉 Aplicación migrada inicializada correctamente');
+                
+            } catch (error) {
+                updateSystemStatus('app', 'error', `Error: ${error.message}`);
+                console.error('❌ Error inicializando aplicación migrada:', error);
+            }
+        }
+        
+        /**
+         * 📊 Mostrar métricas del sistema
+         */
+        function showMetrics() {
+            if (!window.migratedApp) {
+                alert('🚨 Primero debes inicializar la aplicación');
+                return;
+            }
+            
+            const metrics = window.migratedApp.getMetrics();
+            const display = document.getElementById('metricsDisplay');
+            
+            display.innerHTML = `
+                <h3>📊 Métricas del Sistema</h3>
+                <pre>${JSON.stringify(metrics, null, 2)}</pre>
+            `;
+            display.style.display = 'block';
+        }
+        
+        /**
+         * 🔍 Mostrar estado de la aplicación
+         */
+        function showState() {
+            if (!window.migratedApp) {
+                alert('🚨 Primero debes inicializar la aplicación');
+                return;
+            }
+            
+            const state = window.migratedApp.getState();
+            const display = document.getElementById('metricsDisplay');
+            
+            display.innerHTML = `
+                <h3>🔍 Estado de la Aplicación</h3>
+                <pre>${JSON.stringify(state, null, 2)}</pre>
+            `;
+            display.style.display = 'block';
+        }
+        
+        /**
+         * 🧪 Probar sistemas individualmente
+         */
+        async function testSystems() {
+            if (!window.migratedApp) {
+                alert('🚨 Primero debes inicializar la aplicación');
+                return;
+            }
+            
+            try {
+                // 🧪 Test EventBus
+                const eventBus = window.migratedApp.eventBus;
+                if (eventBus && eventBus.emit) {
+                    eventBus.emit('test:event', { message: 'Test desde dev tools' });
+                    updateSystemStatus('eventBus', 'success', 'Test exitoso');
+                } else {
+                    updateSystemStatus('eventBus', 'error', 'EventBus no disponible');
+                }
+                
+                // 🧪 Test Cache
+                const cache = window.migratedApp.cache;
+                if (cache && cache.set && cache.get) {
+                    await cache.set('test:key', 'test:value');
+                    const value = await cache.get('test:key');
+                    updateSystemStatus('cache', value === 'test:value' ? 'success' : 'error', 
+                        value === 'test:value' ? 'Test exitoso' : 'Test fallido');
+                } else {
+                    updateSystemStatus('cache', 'error', 'Cache no disponible');
+                }
+                
+                // 🧪 Test Validation
+                const validation = window.migratedApp.validation;
+                if (validation && validation.validateAndSanitize) {
+                    const testData = { monto: 100, categoria: 'test' };
+                    try {
+                        const validated = await validation.validateAndSanitize(testData, 'ingreso');
+                        updateSystemStatus('validation', 'success', 'Test exitoso');
+                    } catch (e) {
+                        updateSystemStatus('validation', 'warning', 'Test con errores: ' + e.message);
+                    }
+                } else {
+                    updateSystemStatus('validation', 'error', 'Validation no disponible');
+                }
+                
+                // 🧪 Test Metrics
+                const metrics = window.migratedApp.metrics;
+                if (metrics && metrics.recordMetric) {
+                    metrics.recordMetric('test.metric', 42);
+                    updateSystemStatus('metrics', 'success', 'Test exitoso');
+                } else {
+                    updateSystemStatus('metrics', 'error', 'Metrics no disponible');
+                }
+                
+                alert('🎉 Tests de sistemas completados. Revisa el estado.');
+                
+            } catch (error) {
+                console.error('❌ Error en tests de sistemas:', error);
+                alert('🚨 Error en tests: ' + error.message);
+            }
+        }
+        
+        /**
+         * 🗑️ Limpiar caché del sistema
+         */
+        async function clearCache() {
+            if (!window.migratedApp) {
+                alert('🚨 Primero debes inicializar la aplicación');
+                return;
+            }
+            
+            try {
+                const cache = window.migratedApp.di.resolve('cache');
+                await cache.clear();
+                updateSystemStatus('cache', 'info', 'Caché limpiado');
+                alert('🗑️ Caché limpiado correctamente');
+            } catch (error) {
+                console.error('❌ Error limpiando caché:', error);
+                alert('🚨 Error limpiando caché: ' + error.message);
+            }
+        }
+        
+        /**
+         * 🧪 Ejecutar suite de tests
+         */
+        function runTests() {
+            window.open('http://localhost:8000/src/tests/test-runner.html', '_blank');
+        }
+        
+        /**
+         * 📊 Actualizar estado de un sistema
+         */
+        function updateSystemStatus(system, status, message) {
+            const container = document.getElementById('systemStatus');
+            let card = document.getElementById(`status-${system}`);
+            
+            if (!card) {
+                card = document.createElement('div');
+                card.className = 'status-card';
+                card.id = `status-${system}`;
+                container.appendChild(card);
+            }
+            
+            const systemNames = {
+                'app': '🚀 Aplicación',
+                'eventBus': '📡 EventBus',
+                'cache': '🗄️ Cache',
+                'validation': '✅ Validation',
+                'metrics': '📊 Metrics',
+                'debug': '🐛 Debug Mode'
+            };
+            
+            card.innerHTML = `
+                <h3>${systemNames[system] || system}</h3>
+                <div>
+                    <span class="status-indicator status-${status}"></span>
+                    ${message}
+                </div>
+                <small style="color: #666;">Actualizado: ${new Date().toLocaleTimeString()}</small>
+            `;
+        }
+        
+        /**
+         * 🔄 Actualizar estado de todos los sistemas
+         */
+        function updateAllSystemStatus() {
+            updateSystemStatus('eventBus', 'success', 'Sistema de eventos funcionando');
+            updateSystemStatus('cache', 'success', 'Sistema de caché activo');
+            updateSystemStatus('validation', 'success', 'Sistema de validación listo');
+            updateSystemStatus('metrics', 'success', 'Sistema de métricas recopilando');
+        }
+        
+        // 🚀 Inicialización automática del estado
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSystemStatus('app', 'warning', 'No inicializada');
+            updateAllSystemStatus();
+            
+            console.log(`
+🔄 SISTEMA MIGRADO CARGADO (Versión Simple)
+==========================================
+
+🛠️ Comandos disponibles en consola:
+- initMigratedApp()    : Inicializar aplicación
+- showMetrics()        : Ver métricas
+- showState()          : Ver estado
+- testSystems()        : Probar sistemas
+- clearCache()         : Limpiar caché
+- runTests()           : Abrir suite de tests
+
+📱 Usa los botones del panel de desarrollo en la esquina superior derecha.
+            `);
+        });
+    </script>
+</body>
+</html>

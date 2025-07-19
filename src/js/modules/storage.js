@@ -353,22 +353,24 @@ class StorageManager {
                     if (supabaseError && supabaseError.code === '42703' && ingresoActualizado.es_recurrente) {
                         console.warn('⚠️ La BD no está actualizada para ingresos recurrentes. Actualizando sin recurrencia.');
                         
-                        // Eliminar campos de recurrencia para actualizar el ingreso básico
-                        const dataBasico = {
-                            titulo: ingresoActualizado.descripcion,
-                            cantidad: ingresoActualizado.monto,
-                            categoria: ingresoActualizado.categoria,
-                            fecha: ingresoActualizado.fecha,
-                            descripcion: ingresoActualizado.notas || '',
-                            updated_at: ingresoActualizado.updated_at
-                        };
+                        // Crear copia sin campos de recurrencia
+                        const ingresoSinRecurrencia = { ...ingresoActualizado };
+                        delete ingresoSinRecurrencia.es_recurrente;
+                        delete ingresoSinRecurrencia.frecuencia_recurrencia;
+                        delete ingresoSinRecurrencia.dia_recurrencia;
+                        delete ingresoSinRecurrencia.fecha_fin_recurrencia;
+                        delete ingresoSinRecurrencia.activo;
+                        delete ingresoSinRecurrencia.proximo_pago;
+                        delete ingresoSinRecurrencia.numero_secuencia;
+                        delete ingresoSinRecurrencia.gasto_padre_id;
                         
+                        const dataBasico = this.mapFrontendToSupabase(ingresoSinRecurrencia, 'ingreso');
                         const result = await window.SupabaseConfig.utils.update('ingresos', ingresoId, dataBasico);
                         
                         // Mostrar notificación al usuario
                         if (window.gestorApp && window.gestorApp.mostrarNotificacion) {
                             window.gestorApp.mostrarNotificacion(
-                                '⚠️ El ingreso se actualizó sin recurrencia. Actualice la base de datos con el script supabase-recurrencia-update.sql', 
+                                '⚠️ Ingreso actualizado sin datos de recurrencia. Actualiza la base de datos para usar recurrencia.',
                                 'warning'
                             );
                         }
@@ -376,6 +378,8 @@ class StorageManager {
                         return this.mapSupabaseToFrontend(result[0], 'ingreso');
                     }
                     
+                    // Si es otro tipo de error, lanzarlo
+                    console.error('Error al actualizar ingreso:', supabaseError);
                     throw supabaseError;
                 }
             } else {

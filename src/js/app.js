@@ -3,6 +3,16 @@
  * Aplicación adaptada para México con formato de pesos mexicanos
  */
 
+// Logger temporal hasta que se cargue el logger principal
+if (typeof window.logger === 'undefined') {
+    window.logger = {
+        success: (msg) => console.log(`✅ ${msg}`),
+        warn: (msg) => console.warn(`⚠️ ${msg}`),
+        error: (msg) => console.error(`❌ ${msg}`),
+        info: (msg) => console.info(`ℹ️ ${msg}`)
+    };
+}
+
 class GestorFinanciero {
     constructor() {
         this.version = '2.0.0-MX';
@@ -212,7 +222,7 @@ class GestorFinanciero {
             await this.storage.init();
             
             const estado = this.storage.getConnectionStatus();
-            logger.database(`Estado de almacenamiento: ${JSON.stringify(estado)}`);
+            logger.info(`Estado de almacenamiento: ${JSON.stringify(estado)}`);
             
         } catch (error) {
             logger.warn('Problemas al inicializar almacenamiento, usando fallback local');

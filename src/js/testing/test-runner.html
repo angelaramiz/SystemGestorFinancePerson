@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Test Runner - Sistema Gestor Financiero</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-800: #1e293b;
+            --gray-600: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-600);
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--gray-100);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .success { color: var(--success); }
+        .error { color: var(--error); }
+        .warning { color: var(--warning); }
+
+        .console-output {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--gray-100);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .suite-results {
+            margin-top: 2rem;
+        }
+
+        .suite-header {
+            background: var(--gray-100);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .test-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-left: 4px solid transparent;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .test-item.passed {
+            border-left-color: var(--success);
+            background: #f0fdf4;
+        }
+
+        .test-item.failed {
+            border-left-color: var(--error);
+            background: #fef2f2;
+        }
+
+        .test-item.skipped {
+            border-left-color: var(--warning);
+            background: #fffbeb;
+        }
+
+        .test-status {
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .test-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .test-duration {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .error-details {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
+            background: #fef2f2;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--error);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray-100);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-100);
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gray-600);
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Test Runner</h1>
+            <p>Sistema de Pruebas Automatizadas para Gestor Financiero Personal</p>
+        </div>
+
+        <div class="controls">
+            <button id="run-all-btn" class="btn btn-primary">
+                <span>▶️</span> Ejecutar Todos los Tests
+            </button>
+            <button id="run-unit-btn" class="btn btn-secondary">
+                <span>🔬</span> Solo Tests Unitarios
+            </button>
+            <button id="run-integration-btn" class="btn btn-secondary">
+                <span>🔗</span> Solo Tests de Integración
+            </button>
+            <button id="clear-btn" class="btn btn-secondary">
+                <span>🧹</span> Limpiar
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Ejecutando tests...</p>
+        </div>
+
+        <div class="results-container" id="results-container" style="display: none;">
+            <div class="tabs">
+                <button class="tab active" data-tab="overview">📊 Resumen</button>
+                <button class="tab" data-tab="details">📋 Detalles</button>
+                <button class="tab" data-tab="console">🖥️ Console</button>
+            </div>
+
+            <div class="tab-content active" id="overview-tab">
+                <div class="stats-grid" id="stats-grid">
+                    <!-- Stats will be populated by JavaScript -->
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                
+                <div id="summary-text" class="text-center"></div>
+            </div>
+
+            <div class="tab-content" id="details-tab">
+                <div class="suite-results" id="suite-results">
+                    <!-- Test details will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="tab-content" id="console-tab">
+                <div class="console-output" id="console-output"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Systems -->
+    <script src="../modules/logger.js"></script>
+    <script src="../core/DependencyInjector.js"></script>
+    <script src="../core/EventBus.js"></script>
+    <script src="../core/ValidationSystem.js"></script>
+    <script src="../core/MetricsSystem.js"></script>
+    <script src="../core/CacheSystem.js"></script>
+
+    <!-- Test Framework -->
+    <script src="TestFramework.js"></script>
+    <script src="CoreSystemsTests.js"></script>
+
+    <script>
+        class TestRunner {
+            constructor() {
+                this.originalConsole = {
+                    log: console.log,
+                    warn: console.warn,
+                    error: console.error,
+                    info: console.info
+                };
+                this.consoleOutput = [];
+                this.currentResults = null;
+                
+                this.setupEventListeners();
+                this.setupTabs();
+                this.interceptConsole();
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-all-btn').addEventListener('click', () => {
+                    this.runTests('all');
+                });
+
+                document.getElementById('run-unit-btn').addEventListener('click', () => {
+                    this.runTests('unit');
+                });
+
+                document.getElementById('run-integration-btn').addEventListener('click', () => {
+                    this.runTests('integration');
+                });
+
+                document.getElementById('clear-btn').addEventListener('click', () => {
+                    this.clearResults();
+                });
+            }
+
+            setupTabs() {
+                const tabs = document.querySelectorAll('.tab');
+                const tabContents = document.querySelectorAll('.tab-content');
+
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        const targetTab = tab.dataset.tab;
+                        
+                        tabs.forEach(t => t.classList.remove('active'));
+                        tabContents.forEach(tc => tc.classList.remove('active'));
+                        
+                        tab.classList.add('active');
+                        document.getElementById(`${targetTab}-tab`).classList.add('active');
+                    });
+                });
+            }
+
+            interceptConsole() {
+                const outputElement = document.getElementById('console-output');
+                
+                ['log', 'warn', 'error', 'info'].forEach(method => {
+                    console[method] = (...args) => {
+                        this.originalConsole[method](...args);
+                        
+                        const message = args.map(arg => 
+                            typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+                        ).join(' ');
+                        
+                        this.consoleOutput.push(`[${method.toUpperCase()}] ${message}`);
+                        
+                        if (outputElement) {
+                            outputElement.textContent = this.consoleOutput.join('\n');
+                            outputElement.scrollTop = outputElement.scrollHeight;
+                        }
+                    };
+                });
+            }
+
+            async runTests(type = 'all') {
+                this.showLoading();
+                this.clearConsole();
+                this.disableButtons();
+
+                try {
+                    // Ejecutar tests
+                    await runTests();
+                    
+                    // Obtener resultados (esto debería venir del framework de tests)
+                    this.currentResults = window.testFramework?.getResults() || {
+                        passed: 0,
+                        failed: 0,
+                        skipped: 0,
+                        total: 0,
+                        successRate: 0
+                    };
+
+                    this.displayResults();
+                    
+                } catch (error) {
+                    console.error('Error ejecutando tests:', error);
+                    this.showError('Error al ejecutar los tests: ' + error.message);
+                } finally {
+                    this.hideLoading();
+                    this.enableButtons();
+                }
+            }
+
+            displayResults() {
+                const resultsContainer = document.getElementById('results-container');
+                resultsContainer.style.display = 'block';
+
+                this.updateStats();
+                this.updateProgress();
+                this.updateSummary();
+            }
+
+            updateStats() {
+                const statsGrid = document.getElementById('stats-grid');
+                const results = this.currentResults;
+                
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value success">${results.passed}</div>
+                        <div class="stat-label">Pasados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value error">${results.failed}</div>
+                        <div class="stat-label">Fallidos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value warning">${results.skipped}</div>
+                        <div class="stat-label">Omitidos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.total}</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value ${results.successRate >= 80 ? 'success' : results.successRate >= 60 ? 'warning' : 'error'}">
+                            ${results.successRate.toFixed(1)}%
+                        </div>
+                        <div class="stat-label">Tasa de Éxito</div>
+                    </div>
+                `;
+            }
+
+            updateProgress() {
+                const progressFill = document.getElementById('progress-fill');
+                const successRate = this.currentResults.successRate;
+                
+                progressFill.style.width = `${successRate}%`;
+                progressFill.style.background = successRate >= 80 ? 'var(--success)' : 
+                                               successRate >= 60 ? 'var(--warning)' : 'var(--error)';
+            }
+
+            updateSummary() {
+                const summaryText = document.getElementById('summary-text');
+                const results = this.currentResults;
+                
+                let message = '';
+                let className = '';
+                
+                if (results.failed === 0) {
+                    message = '🎉 ¡Todos los tests pasaron exitosamente!';
+                    className = 'success';
+                } else if (results.successRate >= 80) {
+                    message = `✅ La mayoría de tests pasaron (${results.failed} fallidos)`;
+                    className = 'warning';
+                } else {
+                    message = `❌ Varios tests fallaron (${results.failed} de ${results.total})`;
+                    className = 'error';
+                }
+                
+                summaryText.innerHTML = `<p class="${className}">${message}</p>`;
+            }
+
+            showLoading() {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('results-container').style.display = 'none';
+            }
+
+            hideLoading() {
+                document.getElementById('loading').style.display = 'none';
+            }
+
+            disableButtons() {
+                const buttons = document.querySelectorAll('.controls .btn');
+                buttons.forEach(btn => btn.disabled = true);
+            }
+
+            enableButtons() {
+                const buttons = document.querySelectorAll('.controls .btn');
+                buttons.forEach(btn => btn.disabled = false);
+            }
+
+            clearResults() {
+                document.getElementById('results-container').style.display = 'none';
+                this.clearConsole();
+                this.currentResults = null;
+            }
+
+            clearConsole() {
+                this.consoleOutput = [];
+                document.getElementById('console-output').textContent = '';
+            }
+
+            showError(message) {
+                const resultsContainer = document.getElementById('results-container');
+                resultsContainer.style.display = 'block';
+                resultsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--error);">
+                        <h3>❌ Error</h3>
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Inicializar el test runner cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            window.testRunner = new TestRunner();
+            console.log('🧪 Test Runner inicializado. Listo para ejecutar pruebas.');
+        });
+    </script>
+</body>
+</html>
