@@ -62,6 +62,83 @@ class GestorModales {
                 }
             });
         }
+        
+        // Configurar actualizaciones dinámicas del campo día para ingresos
+        const selectIngresoFrecuencia = document.getElementById('ingreso-frecuencia-recurrencia');
+        const inputIngresoDia = document.getElementById('ingreso-dia-recurrencia');
+        const helpIngresoText = inputIngresoDia?.nextElementSibling;
+        
+        if (selectIngresoFrecuencia && inputIngresoDia && helpIngresoText) {
+            selectIngresoFrecuencia.addEventListener('change', (e) => {
+                this.actualizarCampoDia(e.target.value, inputIngresoDia, helpIngresoText);
+            });
+            // Configurar valores iniciales
+            this.actualizarCampoDia(selectIngresoFrecuencia.value, inputIngresoDia, helpIngresoText);
+        }
+        
+        // Configurar actualizaciones dinámicas del campo día para gastos
+        const selectGastoFrecuencia = document.getElementById('gasto-frecuencia-recurrencia');
+        const inputGastoDia = document.getElementById('gasto-dia-recurrencia');
+        const helpGastoText = inputGastoDia?.nextElementSibling;
+        
+        if (selectGastoFrecuencia && inputGastoDia && helpGastoText) {
+            selectGastoFrecuencia.addEventListener('change', (e) => {
+                this.actualizarCampoDia(e.target.value, inputGastoDia, helpGastoText);
+            });
+            // Configurar valores iniciales
+            this.actualizarCampoDia(selectGastoFrecuencia.value, inputGastoDia, helpGastoText);
+        }
+    }
+
+    actualizarCampoDia(frecuencia, inputDia, helpText) {
+        const configuraciones = {
+            'semanal': {
+                placeholder: '1',
+                help: 'Día de la semana (1=Lunes, 2=Martes, ..., 7=Domingo)',
+                valor: '1'
+            },
+            'quincenal': {
+                placeholder: '1',
+                help: 'Día de la quincena (1-15)',
+                valor: '1'
+            },
+            'mensual': {
+                placeholder: '1',
+                help: 'Día del mes (1-31)',
+                valor: '1'
+            },
+            'bimestral': {
+                placeholder: '1',
+                help: 'Día del bimestre (1-31)',
+                valor: '1'
+            },
+            'trimestral': {
+                placeholder: '1',
+                help: 'Día del trimestre (1-31)',
+                valor: '1'
+            },
+            'semestral': {
+                placeholder: '1',
+                help: 'Día del semestre (1-31)',
+                valor: '1'
+            },
+            'anual': {
+                placeholder: '1',
+                help: 'Día del año (1-365)',
+                valor: '1'
+            }
+        };
+        
+        const config = configuraciones[frecuencia] || configuraciones['mensual'];
+        
+        if (inputDia) {
+            inputDia.placeholder = config.placeholder;
+            inputDia.value = config.valor;
+        }
+        
+        if (helpText) {
+            helpText.textContent = config.help;
+        }
     }
 
     configurarEventosGlobales() {
@@ -190,10 +267,19 @@ class GestorModales {
                 return;
             }
 
-            // Obtener datos de recurrencia 
+            // Obtener datos de recurrencia
             const esRecurrente = document.getElementById('ingreso-es-recurrente').checked;
             
             if (esRecurrente) {
+                // Verificar que la estructura de la DB esté actualizada antes de proceder
+                if (window.RecurrenceManager && window.gestorApp.storageManager.useSupabase) {
+                    const estructuraActualizada = await window.RecurrenceManager.verificarEstructuraDB();
+                    if (!estructuraActualizada) {
+                        this.mostrarLoading(form, false);
+                        return; // No continuar si falta actualizar la DB
+                    }
+                }
+                
                 ingreso.es_recurrente = true;
                 ingreso.frecuencia_recurrencia = document.getElementById('ingreso-frecuencia-recurrencia').value;
                 ingreso.dia_recurrencia = document.getElementById('ingreso-dia-recurrencia').value;
@@ -204,14 +290,18 @@ class GestorModales {
                 if (window.RecurrenceManager) {
                     // Calcular intervalo de días basado en la frecuencia
                     const intervaloDias = this.calcularIntervaloDias(ingreso.frecuencia_recurrencia);
+                    const diaRecurrencia = document.getElementById('ingreso-dia-recurrencia').value;
                     const proximoPago = window.RecurrenceManager.calcularProximoPago(
                         ingreso.fecha,
-                        intervaloDias
+                        intervaloDias,
+                        ingreso.frecuencia_recurrencia,
+                        diaRecurrencia
                     );
                     ingreso.proximo_pago = proximoPago;
                     ingreso.numero_secuencia = 1;
                     ingreso.ingreso_padre_id = null;
                     ingreso.intervalo_dias = intervaloDias;
+                    ingreso.dia_recurrencia = diaRecurrencia;
                 }
             }
 
@@ -292,6 +382,15 @@ class GestorModales {
             const esRecurrente = document.getElementById('gasto-es-recurrente').checked;
             
             if (esRecurrente) {
+                // Verificar que la estructura de la DB esté actualizada antes de proceder
+                if (window.RecurrenceManager && window.gestorApp.storageManager.useSupabase) {
+                    const estructuraActualizada = await window.RecurrenceManager.verificarEstructuraDB();
+                    if (!estructuraActualizada) {
+                        this.mostrarLoading(form, false);
+                        return; // No continuar si falta actualizar la DB
+                    }
+                }
+                
                 gasto.es_recurrente = true;
                 gasto.frecuencia_recurrencia = document.getElementById('gasto-frecuencia-recurrencia').value;
                 gasto.dia_recurrencia = document.getElementById('gasto-dia-recurrencia').value;
@@ -301,14 +400,18 @@ class GestorModales {
                 // Si tenemos RecurrenceManager disponible, usar para calcular próximo pago
                 if (window.RecurrenceManager) {
                     const intervaloDias = this.calcularIntervaloDias(gasto.frecuencia_recurrencia);
+                    const diaRecurrencia = document.getElementById('gasto-dia-recurrencia').value;
                     const proximoPago = window.RecurrenceManager.calcularProximoPago(
                         gasto.fecha,
-                        intervaloDias
+                        intervaloDias,
+                        gasto.frecuencia_recurrencia,
+                        diaRecurrencia
                     );
                     gasto.proximo_pago = proximoPago;
                     gasto.numero_secuencia = 1;
                     gasto.gasto_padre_id = null;
                     gasto.intervalo_dias = intervaloDias;
+                    gasto.dia_recurrencia = diaRecurrencia;
                 }
             }
 

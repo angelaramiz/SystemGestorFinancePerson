@@ -153,12 +153,41 @@ class RecurrenceManager {
     /**
      * Calcular la fecha del próximo pago
      */
-    calcularProximoPago(fechaInicial, intervaloDias) {
+    calcularProximoPago(fechaInicial, intervaloDias, frecuencia = null, diaRecurrencia = null) {
         if (!fechaInicial || !intervaloDias) return null;
         
         const fecha = new Date(fechaInicial);
-        fecha.setDate(fecha.getDate() + intervaloDias);
-        return fecha.toISOString().split('T')[0];
+        
+        // Para recurrencias mensuales con día específico, usar la función mejorada
+        if (frecuencia === 'mensual' && diaRecurrencia) {
+            const diaDelMes = parseInt(diaRecurrencia);
+            const siguienteFecha = this.calcularSiguienteFechaMensual(fecha, diaDelMes, 1);
+            return siguienteFecha.toISOString().split('T')[0];
+        } else {
+            // Para otras frecuencias, usar el intervalo de días
+            fecha.setDate(fecha.getDate() + intervaloDias);
+            return fecha.toISOString().split('T')[0];
+        }
+    }
+
+    /**
+     * Calcular siguiente fecha mensual manteniendo el día específico
+     * Maneja correctamente meses con diferente cantidad de días (28, 29, 30, 31)
+     */
+    calcularSiguienteFechaMensual(fechaActual, diaDeseado, mesesAAgregar = 1) {
+        const año = fechaActual.getFullYear();
+        const mes = fechaActual.getMonth();
+        
+        // Ir al primer día del mes objetivo
+        const nuevaFecha = new Date(año, mes + mesesAAgregar, 1);
+        
+        // Obtener el último día del mes objetivo
+        const ultimoDiaDelMes = new Date(nuevaFecha.getFullYear(), nuevaFecha.getMonth() + 1, 0).getDate();
+        
+        // Si el día deseado existe en el mes, usarlo; si no, usar el último día disponible
+        const diaFinal = Math.min(diaDeseado, ultimoDiaDelMes);
+        
+        return new Date(nuevaFecha.getFullYear(), nuevaFecha.getMonth(), diaFinal);
     }
 
     /**
@@ -464,7 +493,12 @@ class RecurrenceManager {
                 instancias.push(nuevaInstancia);
                 
                 // Calcular siguiente fecha
-                fechaActual = new Date(fechaActual.getTime() + (ingresoRecurrente.intervalo_dias * 24 * 60 * 60 * 1000));
+                if (ingresoRecurrente.frecuencia_recurrencia === 'mensual' && ingresoRecurrente.dia_recurrencia) {
+                    const diaDelMes = parseInt(ingresoRecurrente.dia_recurrencia);
+                    fechaActual = this.calcularSiguienteFechaMensual(fechaActual, diaDelMes, 1);
+                } else {
+                    fechaActual = new Date(fechaActual.getTime() + (ingresoRecurrente.intervalo_dias * 24 * 60 * 60 * 1000));
+                }
             }
             
             logger.info(`📅 Generadas ${instancias.length} instancias futuras para ingreso recurrente`);
@@ -513,8 +547,14 @@ class RecurrenceManager {
                 
                 instancias.push(nuevaInstancia);
                 
-                // Calcular siguiente fecha
-                fechaActual = new Date(fechaActual.getTime() + (gastoRecurrente.intervalo_dias * 24 * 60 * 60 * 1000));
+                // Calcular siguiente fecha usando la lógica mejorada para fechas mensuales
+                if (gastoRecurrente.frecuencia_recurrencia === 'mensual' && gastoRecurrente.dia_recurrencia) {
+                    const diaDelMes = parseInt(gastoRecurrente.dia_recurrencia);
+                    fechaActual = this.calcularSiguienteFechaMensual(fechaActual, diaDelMes, 1);
+                } else {
+                    // Para otras frecuencias, usar el intervalo de días
+                    fechaActual = new Date(fechaActual.getTime() + (gastoRecurrente.intervalo_dias * 24 * 60 * 60 * 1000));
+                }
             }
             
             logger.info(`📅 Generadas ${instancias.length} instancias futuras para gasto recurrente`);
